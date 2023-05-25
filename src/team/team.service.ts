@@ -15,4 +15,8 @@ export class TeamService {
     console.log(res);
     return 'hello';
   }
+
+  public async findOneByUsername(username: string) {
+    return await this.teamRepository.findOne({ username });
+  }
 }

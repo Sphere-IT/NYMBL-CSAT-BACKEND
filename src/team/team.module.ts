@@ -7,5 +7,6 @@ import { TeamEntity } from './entities';
 @Module({
   imports: [MikroOrmModule.forFeature([TeamEntity])],
   providers: [TeamResolver, TeamService],
+  exports: [TeamService],
 })
 export class TeamModule {}

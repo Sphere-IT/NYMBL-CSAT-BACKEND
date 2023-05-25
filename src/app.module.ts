@@ -9,6 +9,7 @@ import { AssignmentModule } from './assignment/assignment.module';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { entities } from './common/config';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     }),
     TeamModule,
     AssignmentModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -2,6 +2,31 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input LoginInput {
+  password: String!
+  username: String!
+}
+
+type LoginResponse {
+  access_token: String!
+  user: TeamEntity!
+}
+
+type Mutation {
+  login(input: LoginInput!): LoginResponse!
+}
+
 type Query {
   getHello: String!
+}
+
+type TeamEntity {
+  contact: Float!
+  email: String!
+  firstName: String!
+  idTeamMember: Float
+  lastName: String!
+  password: String!
+  refIdDepartment: Float
+  username: String!
 }
