@@ -5,6 +5,7 @@ import {
   AssignmentStatusEntity,
   SubmissionEntity,
 } from 'src/assignment/entities';
+import { FormEntity, QuestionEntity } from 'src/form/entities';
 
 export const entities = [
   BaseEntity,
@@ -12,4 +13,6 @@ export const entities = [
   AssignmentEntity,
   AssignmentStatusEntity,
   SubmissionEntity,
+  FormEntity,
+  QuestionEntity,
 ];

@@ -10,6 +10,7 @@ import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { entities } from './common/config';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
+import { FormModule } from './form/form.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { AuthModule } from './auth/auth.module';
     TeamModule,
     AssignmentModule,
     AuthModule,
+    FormModule,
   ],
   controllers: [AppController],
   providers: [AppService],
