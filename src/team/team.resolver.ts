@@ -5,6 +5,7 @@ import { FilterTeamResponse } from './dto/args';
 import { TeamListingInput } from './dto/input';
 import { SuccessResponse } from 'src/common/dto/args';
 import { CreateTeamMemberInput } from './dto/input/create-member.input';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 @Resolver()
 export class TeamResolver {
@@ -24,8 +25,11 @@ export class TeamResolver {
   }
 
   @Mutation(() => SuccessResponse)
-  // @Allow()
-  async createTeamMember(@Args('input') input: CreateTeamMemberInput) {
-    return this.teamService.createTeamMember(input);
+  @Allow()
+  async createTeamMember(
+    @Args('input') input: CreateTeamMemberInput,
+    @CurrentUser() currentUser,
+  ) {
+    return this.teamService.createTeamMember(input, currentUser.userId);
   }
 }

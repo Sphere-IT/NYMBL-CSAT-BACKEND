@@ -96,12 +96,16 @@ type SuccessResponse {
 
 type TeamEntity {
   contact: String!
+  createdAt: DateTime!
+  createdBy: String!
   email: String!
   firstName: String!
   idTeamMember: Float
   lastName: String!
   password: String!
   refIdDepartment: Float
+  updatedAt: DateTime
+  updatedBy: String
   username: String!
 }
 

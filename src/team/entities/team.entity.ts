@@ -1,9 +1,10 @@
 import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
 import { Field, ObjectType } from '@nestjs/graphql';
+import { BaseEntity } from 'src/common/entities';
 
 @ObjectType()
 @Entity({ tableName: 'team_member' })
-export class TeamEntity {
+export class TeamEntity extends BaseEntity {
   @Property({ autoincrement: true, primary: true })
   @Field(() => Number, { nullable: true })
   idTeamMember?: number;

@@ -13,6 +13,7 @@ import { AssignmentService } from 'src/assignment/assignment.service';
 import { CreateTeamMemberInput } from './dto/input/create-member.input';
 import { SuccessResponse } from 'src/common/dto/args';
 import isEmail from 'validator/lib/isEmail';
+import { UpdateTeamMemberInput } from './dto/input/update-member.input';
 
 @Injectable()
 export class TeamService {
@@ -91,6 +92,7 @@ export class TeamService {
 
   public async createTeamMember(
     input: CreateTeamMemberInput,
+    userId: number,
   ): Promise<SuccessResponse> {
     if (
       !input.firstName ||
@@ -132,6 +134,8 @@ export class TeamService {
       username: input.username,
       contact: input?.contact || null,
       refIdDepartment: input?.refIdDepartment || null,
+      createdAt: new Date(),
+      createdBy: userId.toString(),
     });
 
     await this.em.persistAndFlush(member);
@@ -142,7 +146,41 @@ export class TeamService {
     };
   }
 
-  public async updateTeamMember() {}
+  public async updateTeamMember(input: UpdateTeamMemberInput, userId: number) {
+    const member = await this.teamRepository.findOne({
+      idTeamMember: input.teamMemberId,
+    });
+
+    if (!member) {
+      throw new BadRequestException('User already exists');
+    }
+
+    if (input?.data?.contact) {
+      const r = RegExp(
+        /^(?:\+971|00971|0)?(?:50|51|52|55|56|2|3|4|6|7|9)\d{7}$/,
+      );
+      if (!r.test(input?.data?.contact)) {
+        throw new BadRequestException('Phone number not valid');
+      }
+    }
+
+    if (input?.data?.email) {
+      if (!isEmail(input?.data?.email)) {
+        throw new BadRequestException('Email address not valid');
+      }
+    }
+
+    await this.em.assign(member, {
+      ...input.data,
+      updatedBy: userId.toString(),
+      updatedAt: new Date(),
+    });
+
+    return {
+      success: true,
+      message: 'Member updated successfully',
+    };
+  }
 
   public async deleteTeamMember() {}
 
