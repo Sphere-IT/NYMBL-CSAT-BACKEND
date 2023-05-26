@@ -6,10 +6,13 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { TeamEntity } from './entities';
-import { EntityRepository } from '@mikro-orm/postgresql';
+import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
 import { TeamListingInput } from './dto/input';
 import { TeamMemberDetailsResponse } from './dto/args';
 import { AssignmentService } from 'src/assignment/assignment.service';
+import { CreateTeamMemberInput } from './dto/input/create-member.input';
+import { SuccessResponse } from 'src/common/dto/args';
+import isEmail from 'validator/lib/isEmail';
 
 @Injectable()
 export class TeamService {
@@ -18,6 +21,7 @@ export class TeamService {
     private teamRepository: EntityRepository<TeamEntity>,
     @Inject(forwardRef(() => AssignmentService))
     private assignmentService: AssignmentService,
+    private em: EntityManager,
   ) {}
 
   public async getPaginatedTeamMembers() {
@@ -84,4 +88,63 @@ export class TeamService {
       throw new BadRequestException(err?.message, err);
     }
   }
+
+  public async createTeamMember(
+    input: CreateTeamMemberInput,
+  ): Promise<SuccessResponse> {
+    if (
+      !input.firstName ||
+      !input.lastName ||
+      !input.email ||
+      !input.password ||
+      !input.username ||
+      !input.contact
+    ) {
+      throw new BadRequestException('Invalid input');
+    }
+
+    const oldMember = await this.teamRepository.findOne({
+      $or: [
+        { contact: input.contact },
+        { email: input.email },
+        { username: input.username },
+      ],
+    });
+
+    if (oldMember) {
+      throw new BadRequestException('User already exists');
+    }
+
+    const r = RegExp(/^(?:\+971|00971|0)?(?:50|51|52|55|56|2|3|4|6|7|9)\d{7}$/);
+    if (!r.test(input.contact)) {
+      throw new BadRequestException('Phone number not valid');
+    }
+
+    if (!isEmail(input.email)) {
+      throw new BadRequestException('Email address not valid');
+    }
+
+    const member = this.teamRepository.create({
+      firstName: input.firstName,
+      lastName: input.lastName,
+      email: input.email,
+      password: input.password,
+      username: input.username,
+      contact: input?.contact || null,
+      refIdDepartment: input?.refIdDepartment || null,
+    });
+
+    await this.em.persistAndFlush(member);
+
+    return {
+      success: true,
+      message: 'Team member created successfully',
+    };
+  }
+
+  public async updateTeamMember() {}
+
+  public async deleteTeamMember() {}
+
+  public async getTeamMember() {}
 }

@@ -22,6 +22,16 @@ input CreateAssignmentInput {
   teamMemberId: Float!
 }
 
+input CreateTeamMemberInput {
+  contact: String!
+  email: String!
+  firstName: String!
+  lastName: String!
+  password: String!
+  refIdDepartment: Float
+  username: String!
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
@@ -56,6 +66,7 @@ type LoginResponse {
 
 type Mutation {
   createAssignmentLink(input: CreateAssignmentInput!): String!
+  createTeamMember(input: CreateTeamMemberInput!): SuccessResponse!
   login(input: LoginInput!): LoginResponse!
 }
 
@@ -78,8 +89,13 @@ type QuestionEntity {
   updatedBy: String
 }
 
+type SuccessResponse {
+  message: String
+  success: Boolean!
+}
+
 type TeamEntity {
-  contact: Float!
+  contact: String!
   email: String!
   firstName: String!
   idTeamMember: Float

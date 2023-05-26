@@ -17,8 +17,8 @@ export class TeamEntity {
   lastName: string;
 
   @Property()
-  @Field(() => Number)
-  contact: number;
+  @Field(() => String)
+  contact: string;
 
   @Property()
   @Field(() => String)
