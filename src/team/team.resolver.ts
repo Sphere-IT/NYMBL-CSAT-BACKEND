@@ -1,6 +1,8 @@
-import { Query, Resolver } from '@nestjs/graphql';
+import { Args, Query, Resolver } from '@nestjs/graphql';
 import { TeamService } from './team.service';
 import { Allow } from 'src/common/decorators';
+import { FilterTeamResponse } from './dto/args';
+import { TeamListingInput } from './dto/input';
 
 @Resolver()
 export class TeamResolver {
@@ -11,5 +13,10 @@ export class TeamResolver {
   async getHello() {
     await this.teamService.getPaginatedTeamMembers();
     return 'hello world!';
+  }
+
+  @Query(() => FilterTeamResponse)
+  async getAllTeamMembers(@Args('input') input: TeamListingInput) {
+    return this.teamService.filterTeamMembers(input);
   }
 }

@@ -1,7 +1,8 @@
 import { InjectRepository } from '@mikro-orm/nestjs';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { TeamEntity } from './entities';
 import { EntityRepository } from '@mikro-orm/postgresql';
+import { TeamListingInput } from './dto/input';
 
 @Injectable()
 export class TeamService {
@@ -26,5 +27,29 @@ export class TeamService {
     });
     if (!teamMember) return false;
     return true;
+  }
+
+  public async filterTeamMembers(input: TeamListingInput) {
+    let filter = {};
+    if (input.name) {
+      filter = {
+        $or: [
+          { firstName: { $ilike: input.name } },
+          { lastName: { $ilike: input.name } },
+          { email: { $ilike: input.name } },
+          { contact: { $ilike: input.name } },
+        ],
+      };
+    }
+    const [items, count] = await this.teamRepository.findAndCount(filter, {
+      limit: input.limit,
+      offset: input.offset,
+    });
+
+    return {
+      hasMore: input.offset < count,
+      items,
+      total: count,
+    };
   }
 }

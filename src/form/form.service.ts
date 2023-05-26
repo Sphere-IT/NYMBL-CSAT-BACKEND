@@ -54,4 +54,8 @@ export class FormService {
     if (!question) return false;
     return true;
   }
+
+  public async getAllForms() {
+    return await this.formRepository.find({ formIsActive: true });
+  }
 }
