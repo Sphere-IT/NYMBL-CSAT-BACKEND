@@ -16,6 +16,7 @@ export class TeamResolver {
   }
 
   @Query(() => FilterTeamResponse)
+  @Allow()
   async getAllTeamMembers(@Args('input') input: TeamListingInput) {
     return this.teamService.filterTeamMembers(input);
   }

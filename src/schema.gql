@@ -2,6 +2,21 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type AssignmentEntity {
+  assignmentRef: String!
+  createdAt: DateTime!
+  createdBy: String!
+  idAssignment: Float!
+  message: String!
+  name: String!
+  phone: String!
+  refIdForm: Float!
+  refIdStatus: Float!
+  refIdTeamMember: Float!
+  updatedAt: DateTime
+  updatedBy: String
+}
+
 input CreateAssignmentInput {
   formId: Float!
   teamMemberId: Float!
@@ -78,4 +93,9 @@ input TeamListingInput {
   limit: Float!
   name: String
   offset: Float!
+}
+
+type TeamMemberCommentType {
+  createdAt: DateTime!
+  message: String!
 }
