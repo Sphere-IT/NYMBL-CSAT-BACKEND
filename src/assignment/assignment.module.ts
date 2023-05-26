@@ -7,12 +7,16 @@ import {
   AssignmentStatusEntity,
   SubmissionEntity,
 } from './entities';
+import { TeamModule } from 'src/team/team.module';
+import { FormModule } from 'src/form/form.module';
 
 @Module({
   imports: [
     MikroOrmModule.forFeature({
       entities: [AssignmentEntity, AssignmentStatusEntity, SubmissionEntity],
     }),
+    TeamModule,
+    FormModule,
   ],
   providers: [AssignmentResolver, AssignmentService],
 })

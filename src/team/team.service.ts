@@ -1,5 +1,5 @@
 import { InjectRepository } from '@mikro-orm/nestjs';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { TeamEntity } from './entities';
 import { EntityRepository } from '@mikro-orm/postgresql';
 
@@ -18,5 +18,13 @@ export class TeamService {
 
   public async findOneByUsername(username: string) {
     return await this.teamRepository.findOne({ username });
+  }
+
+  public async validateTeamMemberExist(teamMemberId: number): Promise<boolean> {
+    const teamMember = await this.teamRepository.findOne({
+      idTeamMember: teamMemberId,
+    });
+    if (!teamMember) return false;
+    return true;
   }
 }

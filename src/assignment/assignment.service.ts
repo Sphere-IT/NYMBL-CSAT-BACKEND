@@ -1,5 +1,5 @@
 import { InjectRepository } from '@mikro-orm/nestjs';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import {
   AssignmentEntity,
   AssignmentStatusEntity,
@@ -11,6 +11,8 @@ import { registerEnumType } from '@nestjs/graphql';
 import { ASSIGNMENT_STATUS } from './constants';
 import { EntityManager } from '@mikro-orm/core';
 import { v4 as uuidV4 } from 'uuid';
+import { TeamService } from 'src/team/team.service';
+import { FormService } from 'src/form/form.service';
 
 registerEnumType(ASSIGNMENT_STATUS, { name: 'ASSIGNMENT_STATUS' });
 @Injectable()
@@ -23,12 +25,20 @@ export class AssignmentService {
     @InjectRepository(SubmissionEntity)
     private submissionRepository: EntityRepository<SubmissionEntity>,
     private em: EntityManager,
+    private teamService: TeamService,
+    private formService: FormService,
   ) {}
 
   public async createAssignment(
     input: CreateAssignmentInput,
     userId: string,
   ): Promise<string> {
+    const form = await this.formService.validateFormExist(input.formId);
+    const team = await this.teamService.validateTeamMemberExist(
+      input.teamMemberId,
+    );
+    if (!form || !team) throw new BadRequestException('Invalid data');
+
     const pendingStatus = await this.getStatus(ASSIGNMENT_STATUS.PENDING);
     const assignment = this.assignmentRepository.create({
       refIdForm: input.formId,
