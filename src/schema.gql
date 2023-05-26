@@ -68,6 +68,7 @@ type Mutation {
   createAssignmentLink(input: CreateAssignmentInput!): String!
   createTeamMember(input: CreateTeamMemberInput!): SuccessResponse!
   login(input: LoginInput!): LoginResponse!
+  updateTeamMember(input: UpdateTeamMemberInput!): SuccessResponse!
 }
 
 type Query {
@@ -118,4 +119,19 @@ input TeamListingInput {
 type TeamMemberCommentType {
   createdAt: DateTime!
   message: String!
+}
+
+input UpdateTeamMemberData {
+  contact: String
+  email: String
+  firstName: String
+  lastName: String
+  password: String
+  refIdDepartment: Float
+  username: String
+}
+
+input UpdateTeamMemberInput {
+  data: UpdateTeamMemberData!
+  teamMemberId: Float!
 }

@@ -7,13 +7,15 @@ import {
 } from '@nestjs/common';
 import { TeamEntity } from './entities';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
-import { TeamListingInput } from './dto/input';
+import {
+  CreateTeamMemberInput,
+  TeamListingInput,
+  UpdateTeamMemberInput,
+} from './dto/input';
 import { TeamMemberDetailsResponse } from './dto/args';
 import { AssignmentService } from 'src/assignment/assignment.service';
-import { CreateTeamMemberInput } from './dto/input/create-member.input';
 import { SuccessResponse } from 'src/common/dto/args';
 import isEmail from 'validator/lib/isEmail';
-import { UpdateTeamMemberInput } from './dto/input/update-member.input';
 
 @Injectable()
 export class TeamService {
@@ -162,11 +164,29 @@ export class TeamService {
       if (!r.test(input?.data?.contact)) {
         throw new BadRequestException('Phone number not valid');
       }
+
+      const phoneUsed = await this.teamRepository.findOne({
+        contact: input.data.contact,
+        idTeamMember: { $ne: input.teamMemberId },
+      });
+
+      if (!phoneUsed) {
+        throw new BadRequestException('Phone number already exists');
+      }
     }
 
     if (input?.data?.email) {
       if (!isEmail(input?.data?.email)) {
         throw new BadRequestException('Email address not valid');
+      }
+
+      const emailUsed = await this.teamRepository.findOne({
+        contact: input.data.contact,
+        idTeamMember: { $ne: input.teamMemberId },
+      });
+
+      if (!emailUsed) {
+        throw new BadRequestException('Email already exists');
       }
     }
 
