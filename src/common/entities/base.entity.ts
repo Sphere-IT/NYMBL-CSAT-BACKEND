@@ -9,7 +9,7 @@ export class BaseEntity {
 
   @Property()
   @Field(() => Date)
-  createdDate: Date;
+  createdAt: Date;
 
   @Property({ nullable: true })
   @Field(() => String, { nullable: true })
@@ -17,5 +17,5 @@ export class BaseEntity {
 
   @Property({ nullable: true })
   @Field(() => Date, { nullable: true })
-  updatedDate?: Date;
+  updatedAt?: Date;
 }

@@ -2,20 +2,25 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input CreateAssignmentInput {
+  formId: Float!
+  teamMemberId: Float!
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
 
 type FormEntity {
+  createdAt: DateTime!
   createdBy: String!
-  createdDate: DateTime!
   formIsActive: Boolean!
   formName: String!
   idForm: Float!
   questions: [QuestionEntity!]!
+  updatedAt: DateTime
   updatedBy: String
-  updatedDate: DateTime
 }
 
 input LoginInput {
@@ -29,6 +34,7 @@ type LoginResponse {
 }
 
 type Mutation {
+  createAssignmentLink(input: CreateAssignmentInput!): String!
   login(input: LoginInput!): LoginResponse!
 }
 
@@ -37,16 +43,16 @@ type Query {
 }
 
 type QuestionEntity {
+  createdAt: DateTime!
   createdBy: String!
-  createdDate: DateTime!
   form: FormEntity
   idQuestion: Float!
   questionDetails: String!
   questionOrder: Float!
   questionType: Float!
   refIdForm: Float!
+  updatedAt: DateTime
   updatedBy: String
-  updatedDate: DateTime
 }
 
 type TeamEntity {

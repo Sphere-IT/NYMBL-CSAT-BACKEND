@@ -23,8 +23,8 @@ export class AssignmentEntity extends BaseEntity {
   idAssignment: number;
 
   @Property({ nullable: false })
-  @Field(() => String)
-  refIdForm: string;
+  @Field(() => Number)
+  refIdForm: number;
 
   @Property({ nullable: false })
   @Field(() => Number)
@@ -45,4 +45,8 @@ export class AssignmentEntity extends BaseEntity {
   @Property({ nullable: true })
   @Field(() => String)
   message: string;
+
+  @Property()
+  @Field(() => String)
+  assignmentRef: string;
 }
