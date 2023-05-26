@@ -170,7 +170,7 @@ export class TeamService {
         idTeamMember: { $ne: input.teamMemberId },
       });
 
-      if (!phoneUsed) {
+      if (phoneUsed) {
         throw new BadRequestException('Phone number already exists');
       }
     }
@@ -185,16 +185,18 @@ export class TeamService {
         idTeamMember: { $ne: input.teamMemberId },
       });
 
-      if (!emailUsed) {
+      if (emailUsed) {
         throw new BadRequestException('Email already exists');
       }
     }
 
-    await this.em.assign(member, {
+    await this.teamRepository.assign(member, {
       ...input.data,
       updatedBy: userId.toString(),
       updatedAt: new Date(),
     });
+
+    await this.em.persistAndFlush(member);
 
     return {
       success: true,
