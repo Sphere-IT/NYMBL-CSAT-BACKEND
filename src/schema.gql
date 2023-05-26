@@ -2,6 +2,22 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type FormEntity {
+  createdBy: String!
+  createdDate: DateTime!
+  formIsActive: Boolean!
+  formName: String!
+  idForm: Float!
+  questions: [QuestionEntity!]!
+  updatedBy: String
+  updatedDate: DateTime
+}
+
 input LoginInput {
   password: String!
   username: String!
@@ -18,6 +34,19 @@ type Mutation {
 
 type Query {
   getHello: String!
+}
+
+type QuestionEntity {
+  createdBy: String!
+  createdDate: DateTime!
+  form: FormEntity
+  idQuestion: Float!
+  questionDetails: String!
+  questionOrder: Float!
+  questionType: Float!
+  refIdForm: Float!
+  updatedBy: String
+  updatedDate: DateTime
 }
 
 type TeamEntity {

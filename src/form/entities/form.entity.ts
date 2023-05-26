@@ -1,6 +1,7 @@
-import { Entity, Property } from '@mikro-orm/core';
+import { Collection, Entity, OneToMany, Property } from '@mikro-orm/core';
 import { Field, ObjectType } from '@nestjs/graphql';
 import { BaseEntity } from 'src/common/entities';
+import { QuestionEntity } from './question.entity';
 
 @ObjectType()
 @Entity({ tableName: 'form' })
@@ -16,4 +17,8 @@ export class FormEntity extends BaseEntity {
   @Property()
   @Field(() => Boolean)
   formIsActive?: boolean;
+
+  @OneToMany(() => QuestionEntity, (q) => q.form)
+  @Field(() => [QuestionEntity])
+  questions? = new Collection<QuestionEntity>(this);
 }

@@ -1,6 +1,7 @@
-import { Entity, Property } from '@mikro-orm/core';
+import { Entity, ManyToOne, Property } from '@mikro-orm/core';
 import { Field, ObjectType } from '@nestjs/graphql';
 import { BaseEntity } from 'src/common/entities';
+import { FormEntity } from './form.entity';
 
 @ObjectType()
 @Entity({ tableName: 'question' })
@@ -24,4 +25,12 @@ export class QuestionEntity extends BaseEntity {
   @Property()
   @Field(() => Number)
   questionType: number;
+
+  @ManyToOne(() => FormEntity, {
+    nullable: true,
+    joinColumn: 'ref_id_form',
+    referenceColumnName: 'id_form',
+  })
+  @Field(() => FormEntity, { nullable: true })
+  form?: FormEntity;
 }

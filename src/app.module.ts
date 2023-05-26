@@ -26,6 +26,7 @@ import { FormModule } from './form/form.module';
           type: cnf.get('DB_DRIVER'),
           password: cnf.get('DB_PASSWORD'),
           user: cnf.get('DB_USER'),
+          logger: console.log,
         };
       },
     }),
