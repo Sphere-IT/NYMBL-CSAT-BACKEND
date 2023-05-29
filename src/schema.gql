@@ -37,6 +37,12 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type FilterFormResponse {
+  hasMore: Boolean!
+  items: [FormEntity!]!
+  total: Int!
+}
+
 type FilterTeamResponse {
   hasMore: Boolean!
   items: [TeamEntity!]!
@@ -52,6 +58,12 @@ type FormEntity {
   questions: [QuestionEntity!]!
   updatedAt: DateTime
   updatedBy: String
+}
+
+input FormListingInput {
+  limit: Float!
+  name: String
+  offset: Float!
 }
 
 input LoginInput {
@@ -73,10 +85,11 @@ type Mutation {
 }
 
 type Query {
-  getAllForms: [FormEntity!]!
+  getAllForms(input: FormListingInput!): FilterFormResponse!
   getAllTeamMembers(input: TeamListingInput!): FilterTeamResponse!
   getHello: String!
   getTeamMemberDetails(input: Float!): TeamMemberDetailsResponse!
+  listAllForms: [FormEntity!]!
 }
 
 type QuestionEntity {

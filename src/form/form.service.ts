@@ -1,7 +1,9 @@
 import { InjectRepository } from '@mikro-orm/nestjs';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { FormEntity, QuestionEntity } from './entities';
 import { EntityRepository } from '@mikro-orm/postgresql';
+import { FormListingInput } from './dto/input';
+import { FilterFormResponse } from './dto/args';
 
 @Injectable()
 export class FormService {
@@ -57,5 +59,27 @@ export class FormService {
 
   public async getAllForms() {
     return await this.formRepository.find({ formIsActive: true });
+  }
+
+  public async filterForms(
+    input: FormListingInput,
+  ): Promise<FilterFormResponse> {
+    try {
+      const filter = {};
+      if (input.name) {
+        filter['formName'] = { $ilike: input.name };
+      }
+      const [items, count] = await this.formRepository.findAndCount(filter, {
+        limit: input.limit,
+        offset: input.offset,
+      });
+      return {
+        hasMore: input.offset < count,
+        items,
+        total: count,
+      };
+    } catch (err) {
+      throw new BadRequestException(err?.message, err);
+    }
   }
 }

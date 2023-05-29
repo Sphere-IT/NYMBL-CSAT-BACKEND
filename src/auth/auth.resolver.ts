@@ -1,9 +1,7 @@
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
 import { LoginResponse } from './dto/args';
 import { LoginInput } from './dto/input';
-import { UseGuards } from '@nestjs/common';
-import { GqlAuthGuard } from './gql-auth.guard';
 
 @Resolver()
 export class AuthResolver {
