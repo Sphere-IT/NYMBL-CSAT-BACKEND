@@ -26,6 +26,11 @@ input CreateFormInput {
   formName: String!
 }
 
+input CreateQuestionInput {
+  formId: Float!
+  questionText: String!
+}
+
 input CreateTeamMemberInput {
   contact: String!
   email: String!
@@ -85,13 +90,15 @@ type LoginResponse {
 }
 
 type Mutation {
-  DeleteFormInput(input: DeleteFormInput!): SuccessResponse!
   createAssignmentLink(input: CreateAssignmentInput!): String!
   createForm(input: CreateFormInput!): SuccessResponse!
+  createQuestion(input: CreateQuestionInput!): SuccessResponse!
   createTeamMember(input: CreateTeamMemberInput!): SuccessResponse!
+  deleteFormInput(input: DeleteFormInput!): SuccessResponse!
   deleteTeamMember(teamMemberId: Float!): SuccessResponse!
   login(input: LoginInput!): LoginResponse!
   updateForm(input: UpdateFormInput!): SuccessResponse!
+  updateQuestion(input: UpdateQuestionInput!): SuccessResponse!
   updateTeamMember(input: UpdateTeamMemberInput!): SuccessResponse!
 }
 
@@ -157,6 +164,11 @@ type TeamMemberDetailsResponse {
 input UpdateFormInput {
   formId: Float!
   formName: String!
+}
+
+input UpdateQuestionInput {
+  questionId: Float!
+  questionText: String!
 }
 
 input UpdateTeamMemberData {

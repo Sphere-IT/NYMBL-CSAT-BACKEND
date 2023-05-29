@@ -5,9 +5,11 @@ import { Allow, CurrentUser } from "src/common/decorators";
 import { FilterFormResponse } from "./dto/args";
 import {
   CreateFormInput,
+  CreateQuestionInput,
   DeleteFormInput,
   FormListingInput,
   UpdateFormInput,
+  UpdateQuestionInput,
 } from "./dto/input";
 import { SuccessResponse } from "src/common/dto/args";
 
@@ -47,10 +49,28 @@ export class FormResolver {
 
   @Mutation(() => SuccessResponse)
   @Allow()
-  async DeleteFormInput(
+  async deleteFormInput(
     @Args("input") input: DeleteFormInput,
     @CurrentUser() currentUser,
   ) {
     return await this.formService.deleteForm(input, currentUser.userId);
+  }
+
+  @Mutation(() => SuccessResponse)
+  @Allow()
+  async createQuestion(
+    @Args("input") input: CreateQuestionInput,
+    @CurrentUser() currentUser,
+  ) {
+    return await this.createQuestion(input, currentUser.userId);
+  }
+
+  @Mutation(() => SuccessResponse)
+  @Allow()
+  async updateQuestion(
+    @Args("input") input: UpdateQuestionInput,
+    @CurrentUser() currentUser,
+  ){
+    return await this.updateQuestion(input, currentUser.userId);
   }
 }
