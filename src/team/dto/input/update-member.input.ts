@@ -1,5 +1,4 @@
-import { Field, InputType } from '@nestjs/graphql';
-import { CreateTeamMemberInput } from './create-member.input';
+import { Field, InputType } from "@nestjs/graphql";
 
 @InputType()
 class UpdateTeamMemberData {

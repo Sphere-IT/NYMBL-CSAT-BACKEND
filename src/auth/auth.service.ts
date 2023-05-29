@@ -1,7 +1,7 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { TeamService } from 'src/team/team.service';
-import { LoginInput } from './dto/input';
-import { JwtService } from '@nestjs/jwt';
+import { BadRequestException, Injectable } from "@nestjs/common";
+import { TeamService } from "src/team/team.service";
+import { LoginInput } from "./dto/input";
+import { JwtService } from "@nestjs/jwt";
 
 @Injectable()
 export class AuthService {
@@ -23,7 +23,7 @@ export class AuthService {
 
   public async login(input: LoginInput) {
     const user = await this.validateUser(input.username, input.password);
-    if (!user) throw new BadRequestException('Username or password wrong!');
+    if (!user) throw new BadRequestException("Username or password wrong!");
     return {
       access_token: this.jwtService.sign({
         username: user.username,

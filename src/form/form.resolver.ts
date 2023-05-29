@@ -3,7 +3,12 @@ import { FormService } from "./form.service";
 import { FormEntity } from "./entities";
 import { Allow, CurrentUser } from "src/common/decorators";
 import { FilterFormResponse } from "./dto/args";
-import { CreateFormInput, DeleteFormInput, FormListingInput, UpdateFormInput } from "./dto/input";
+import {
+  CreateFormInput,
+  DeleteFormInput,
+  FormListingInput,
+  UpdateFormInput,
+} from "./dto/input";
 import { SuccessResponse } from "src/common/dto/args";
 
 @Resolver()

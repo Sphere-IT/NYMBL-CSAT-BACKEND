@@ -8,9 +8,12 @@ import { FormEntity, QuestionEntity } from "./entities";
 import { EntityManager, EntityRepository } from "@mikro-orm/postgresql";
 import {
   CreateFormInput,
+  CreateQuestionInput,
   DeleteFormInput,
+  DeleteQuestionInput,
   FormListingInput,
   UpdateFormInput,
+  UpdateQuestionInput,
 } from "./dto/input";
 import { FilterFormResponse } from "./dto/args";
 import { SuccessResponse } from "src/common/dto/args";
@@ -77,7 +80,9 @@ export class FormService {
     input: FormListingInput,
   ): Promise<FilterFormResponse> {
     try {
-      const filter = {};
+      const filter = {
+        formIsActive: true,
+      };
       if (input.name) {
         filter["formName"] = { $ilike: input.name };
       }
@@ -164,6 +169,76 @@ export class FormService {
         message: "Form updated successfully",
       };
     } catch (err) {
+      throw new BadRequestException(err?.message, err);
+    }
+  }
+
+  public async createQuestion(
+    input: CreateQuestionInput,
+    userId: string,
+  ): Promise<SuccessResponse> {
+    try {
+      if (
+        validator.isEmpty(input.questionText) ||
+        !validator.isAlphanumeric(input.questionText)
+      ) {
+        throw new BadRequestException("Question not valid");
+      }
+      const validateFormExist = await this.validateFormExist(input.formId);
+      if (!validateFormExist) {
+        throw new BadRequestException("Form does not exist");
+      }
+      const questionIndex = await this.questionRepository.count({
+        refIdForm: input.formId,
+      });
+      const question = this.questionRepository.create({
+        questionDetails: input.questionText,
+        questionOrder: questionIndex + 1,
+        createdAt: new Date(),
+        createdBy: userId,
+      });
+      await this.em.persistAndFlush(question);
+      return {
+        success: true,
+        message: "Question created successfully",
+      };
+    } catch (err) {
+      throw new BadRequestException(err?.message, err);
+    }
+  }
+
+  public async updateQuestion(
+    input: UpdateQuestionInput,
+    userId: string,
+  ): Promise<SuccessResponse> {
+    try {
+      if (
+        validator.isEmpty(input.questionText) ||
+        !validator.isAlphanumeric(input.questionText)
+      ) {
+        throw new BadRequestException("Question not valid");
+      }
+      const question = await this.questionRepository.findOne({
+        idQuestion: input.questionId,
+      });
+      if (!question) {
+        throw new BadRequestException("Question does not exist");
+      }
+      question.updatedAt = new Date();
+      question.updatedBy = userId;
+      question.questionDetails = input.questionText;
+      await this.em.persistAndFlush(question);
+      return {
+        success: true,
+        message: "Question updated successfully",
+      };
+    } catch (err) {
+      throw new BadRequestException(err?.message, err);
+    }
+  }
+
+  public async deleteQuestion(input: DeleteQuestionInput, userId: string){
+    try {} catch (err) {
       throw new BadRequestException(err?.message, err);
     }
   }
