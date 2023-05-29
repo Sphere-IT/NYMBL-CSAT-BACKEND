@@ -1,9 +1,10 @@
-import { Args, Query, Resolver } from "@nestjs/graphql";
+import { Args, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { FormService } from "./form.service";
 import { FormEntity } from "./entities";
-import { Allow } from "src/common/decorators";
+import { Allow, CurrentUser } from "src/common/decorators";
 import { FilterFormResponse } from "./dto/args";
-import { FormListingInput } from "./dto/input";
+import { CreateFormInput, DeleteFormInput, FormListingInput, UpdateFormInput } from "./dto/input";
+import { SuccessResponse } from "src/common/dto/args";
 
 @Resolver()
 export class FormResolver {
@@ -19,5 +20,32 @@ export class FormResolver {
   @Allow()
   async getAllForms(@Args("input") input: FormListingInput) {
     return await this.formService.filterForms(input);
+  }
+
+  @Mutation(() => SuccessResponse)
+  @Allow()
+  async createForm(
+    @Args("input") input: CreateFormInput,
+    @CurrentUser() currentUser,
+  ) {
+    return await this.formService.createForm(input, currentUser.userId);
+  }
+
+  @Mutation(() => SuccessResponse)
+  @Allow()
+  async updateForm(
+    @Args("input") input: UpdateFormInput,
+    @CurrentUser() currentUser,
+  ) {
+    return await this.formService.updateForm(input, currentUser.userId);
+  }
+
+  @Mutation(() => SuccessResponse)
+  @Allow()
+  async DeleteFormInput(
+    @Args("input") input: DeleteFormInput,
+    @CurrentUser() currentUser,
+  ) {
+    return await this.formService.deleteForm(input, currentUser.userId);
   }
 }

@@ -5,9 +5,16 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { FormEntity, QuestionEntity } from "./entities";
-import { EntityRepository } from "@mikro-orm/postgresql";
-import { FormListingInput } from "./dto/input";
+import { EntityManager, EntityRepository } from "@mikro-orm/postgresql";
+import {
+  CreateFormInput,
+  DeleteFormInput,
+  FormListingInput,
+  UpdateFormInput,
+} from "./dto/input";
 import { FilterFormResponse } from "./dto/args";
+import { SuccessResponse } from "src/common/dto/args";
+import validator from "validator";
 
 @Injectable()
 export class FormService {
@@ -16,6 +23,7 @@ export class FormService {
     private formRepository: EntityRepository<FormEntity>,
     @InjectRepository(QuestionEntity)
     private questionRepository: EntityRepository<QuestionEntity>,
+    private em: EntityManager,
   ) {}
 
   public async getFormDetails(formId: number): Promise<FormEntity> {
@@ -81,6 +89,79 @@ export class FormService {
         hasMore: input.offset < count,
         items,
         total: count,
+      };
+    } catch (err) {
+      throw new BadRequestException(err?.message, err);
+    }
+  }
+
+  public async createForm(
+    input: CreateFormInput,
+    userId: string,
+  ): Promise<SuccessResponse> {
+    try {
+      if (
+        !validator.isAlphanumeric(input.formName) ||
+        validator.isEmpty(input.formName)
+      ) {
+        throw new BadRequestException("Form name not valid");
+      }
+      const form = this.formRepository.create({
+        formName: input.formName,
+        createdAt: new Date(),
+        createdBy: userId,
+        formIsActive: true,
+      });
+      await this.em.persistAndFlush(form);
+      return {
+        success: true,
+        message: "Form created successfully",
+      };
+    } catch (err) {
+      throw new BadRequestException(err?.message, err);
+    }
+  }
+
+  public async updateForm(
+    input: UpdateFormInput,
+    userId: string,
+  ): Promise<SuccessResponse> {
+    try {
+      if (
+        !validator.isAlphanumeric(input.formName) ||
+        validator.isEmpty(input.formName)
+      ) {
+        throw new BadRequestException("Form name not valid");
+      }
+      const form = await this.formRepository.findOne({ idForm: input.formId });
+      if (!form) throw new NotFoundException("Form does not exist");
+      form.formName = input.formName;
+      form.updatedAt = new Date();
+      form.updatedBy = userId;
+      await this.em.persistAndFlush(form);
+      return {
+        success: true,
+        message: "Form updated successfully",
+      };
+    } catch (err) {
+      throw new BadRequestException(err?.message, err);
+    }
+  }
+
+  public async deleteForm(
+    input: DeleteFormInput,
+    userId,
+  ): Promise<SuccessResponse> {
+    try {
+      const form = await this.formRepository.findOne({ idForm: input.formId });
+      if (!form) throw new NotFoundException("Form does not exist");
+      form.formIsActive = false;
+      form.updatedAt = new Date();
+      form.updatedBy = userId;
+      await this.em.persistAndFlush(form);
+      return {
+        success: true,
+        message: "Form updated successfully",
       };
     } catch (err) {
       throw new BadRequestException(err?.message, err);
