@@ -1,9 +1,13 @@
-import { InjectRepository } from '@mikro-orm/nestjs';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { FormEntity, QuestionEntity } from './entities';
-import { EntityRepository } from '@mikro-orm/postgresql';
-import { FormListingInput } from './dto/input';
-import { FilterFormResponse } from './dto/args';
+import { InjectRepository } from "@mikro-orm/nestjs";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import { FormEntity, QuestionEntity } from "./entities";
+import { EntityRepository } from "@mikro-orm/postgresql";
+import { FormListingInput } from "./dto/input";
+import { FilterFormResponse } from "./dto/args";
 
 @Injectable()
 export class FormService {
@@ -18,8 +22,8 @@ export class FormService {
     const f = await this.formRepository.findOne(
       { idForm: formId },
       {
-        populate: ['questions'],
-        orderBy: { questions: { questionOrder: 'ASC' } },
+        populate: ["questions"],
+        orderBy: { questions: { questionOrder: "ASC" } },
       },
     );
     if (!f) throw new NotFoundException();
@@ -29,7 +33,7 @@ export class FormService {
   public async getFormQuestions(formId: number): Promise<QuestionEntity[]> {
     const questions = await this.questionRepository.find(
       { refIdForm: formId },
-      { orderBy: { questionOrder: 'ASC' } },
+      { orderBy: { questionOrder: "ASC" } },
     );
     if (!questions?.length) throw new NotFoundException();
     return questions;
@@ -67,7 +71,7 @@ export class FormService {
     try {
       const filter = {};
       if (input.name) {
-        filter['formName'] = { $ilike: input.name };
+        filter["formName"] = { $ilike: input.name };
       }
       const [items, count] = await this.formRepository.findAndCount(filter, {
         limit: input.limit,

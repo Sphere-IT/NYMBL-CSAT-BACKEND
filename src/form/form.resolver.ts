@@ -1,9 +1,9 @@
-import { Args, Query, Resolver } from '@nestjs/graphql';
-import { FormService } from './form.service';
-import { FormEntity } from './entities';
-import { Allow } from 'src/common/decorators';
-import { FilterFormResponse } from './dto/args';
-import { FormListingInput } from './dto/input';
+import { Args, Query, Resolver } from "@nestjs/graphql";
+import { FormService } from "./form.service";
+import { FormEntity } from "./entities";
+import { Allow } from "src/common/decorators";
+import { FilterFormResponse } from "./dto/args";
+import { FormListingInput } from "./dto/input";
 
 @Resolver()
 export class FormResolver {
@@ -17,7 +17,7 @@ export class FormResolver {
 
   @Query(() => FilterFormResponse)
   @Allow()
-  async getAllForms(@Args('input') input: FormListingInput) {
+  async getAllForms(@Args("input") input: FormListingInput) {
     return await this.formService.filterForms(input);
   }
 }

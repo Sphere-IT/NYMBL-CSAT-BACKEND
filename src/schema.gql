@@ -55,7 +55,7 @@ type FormEntity {
   formIsActive: Boolean!
   formName: String!
   idForm: Float!
-  questions: [QuestionEntity!]!
+  questions: [QuestionEntity!]
   updatedAt: DateTime
   updatedBy: String
 }
