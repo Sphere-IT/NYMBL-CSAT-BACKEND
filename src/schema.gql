@@ -67,6 +67,7 @@ type LoginResponse {
 type Mutation {
   createAssignmentLink(input: CreateAssignmentInput!): String!
   createTeamMember(input: CreateTeamMemberInput!): SuccessResponse!
+  deleteTeamMember(teamMemberId: Float!): SuccessResponse!
   login(input: LoginInput!): LoginResponse!
   updateTeamMember(input: UpdateTeamMemberInput!): SuccessResponse!
 }
@@ -75,6 +76,7 @@ type Query {
   getAllForms: [FormEntity!]!
   getAllTeamMembers(input: TeamListingInput!): FilterTeamResponse!
   getHello: String!
+  getTeamMemberDetails(input: Float!): TeamMemberDetailsResponse!
 }
 
 type QuestionEntity {
@@ -102,6 +104,7 @@ type TeamEntity {
   email: String!
   firstName: String!
   idTeamMember: Float
+  isActive: Boolean
   lastName: String!
   password: String!
   refIdDepartment: Float
@@ -119,6 +122,12 @@ input TeamListingInput {
 type TeamMemberCommentType {
   createdAt: DateTime!
   message: String!
+}
+
+type TeamMemberDetailsResponse {
+  details: TeamEntity!
+  recentComments: [TeamMemberCommentType!]
+  recentSubmissions: [AssignmentEntity!]
 }
 
 input UpdateTeamMemberData {

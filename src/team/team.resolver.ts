@@ -1,7 +1,7 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { TeamService } from './team.service';
 import { Allow, CurrentUser } from 'src/common/decorators';
-import { FilterTeamResponse } from './dto/args';
+import { FilterTeamResponse, TeamMemberDetailsResponse } from './dto/args';
 import {
   CreateTeamMemberInput,
   TeamListingInput,
@@ -42,5 +42,17 @@ export class TeamResolver {
     @CurrentUser() currentUser,
   ) {
     return this.teamService.updateTeamMember(input, currentUser.userId);
+  }
+
+  @Mutation(() => SuccessResponse)
+  @Allow()
+  async deleteTeamMember(@Args('teamMemberId') teamMemberId: number) {
+    return this.teamService.deleteTeamMember(teamMemberId);
+  }
+
+  @Query(() => TeamMemberDetailsResponse)
+  @Allow()
+  async getTeamMemberDetails(@Args('input') teamMemberId: number) {
+    return this.teamService.getTeamMemberDetails(teamMemberId);
   }
 }

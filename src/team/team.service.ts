@@ -3,6 +3,7 @@ import {
   BadRequestException,
   Inject,
   Injectable,
+  NotFoundException,
   forwardRef,
 } from '@nestjs/common';
 import { TeamEntity } from './entities';
@@ -204,7 +205,32 @@ export class TeamService {
     };
   }
 
-  public async deleteTeamMember() {}
+  public async deleteTeamMember(
+    teamMemberId: number,
+  ): Promise<SuccessResponse> {
+    try {
+      await this.teamRepository.nativeUpdate(
+        { idTeamMember: teamMemberId },
+        { isActive: false },
+      );
+      return {
+        success: true,
+        message: 'Team member deleted successfully',
+      };
+    } catch (err) {
+      throw err;
+    }
+  }
 
-  public async getTeamMember() {}
+  public async getTeamMember(teamMemberId: number): Promise<TeamEntity> {
+    try {
+      const member = await this.teamRepository.findOne({
+        idTeamMember: teamMemberId,
+      });
+      if (!member) throw new NotFoundException('User not found');
+      return member;
+    } catch (err) {
+      throw new BadRequestException(err?.message, err);
+    }
+  }
 }

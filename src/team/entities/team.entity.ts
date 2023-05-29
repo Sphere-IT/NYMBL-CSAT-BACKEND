@@ -36,4 +36,8 @@ export class TeamEntity extends BaseEntity {
   @Property()
   @Field(() => Number, { nullable: true })
   refIdDepartment?: number;
+
+  @Property()
+  @Field(() => Boolean, { nullable: true, defaultValue: true })
+  isActive?: boolean;
 }
