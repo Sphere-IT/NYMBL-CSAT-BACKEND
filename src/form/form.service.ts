@@ -105,10 +105,7 @@ export class FormService {
     userId: string,
   ): Promise<SuccessResponse> {
     try {
-      if (
-        !validator.isAlphanumeric(input.formName) ||
-        validator.isEmpty(input.formName)
-      ) {
+      if (validator.isEmpty(input.formName)) {
         throw new BadRequestException("Form name not valid");
       }
       const form = this.formRepository.create({
@@ -132,10 +129,7 @@ export class FormService {
     userId: string,
   ): Promise<SuccessResponse> {
     try {
-      if (
-        !validator.isAlphanumeric(input.formName) ||
-        validator.isEmpty(input.formName)
-      ) {
+      if (validator.isEmpty(input.formName)) {
         throw new BadRequestException("Form name not valid");
       }
       const form = await this.formRepository.findOne({ idForm: input.formId });
@@ -178,10 +172,7 @@ export class FormService {
     userId: string,
   ): Promise<SuccessResponse> {
     try {
-      if (
-        validator.isEmpty(input.questionText) ||
-        !validator.isAlphanumeric(input.questionText)
-      ) {
+      if (validator.isEmpty(input.questionText)) {
         throw new BadRequestException("Question not valid");
       }
       const validateFormExist = await this.validateFormExist(input.formId);
