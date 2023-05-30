@@ -5,3 +5,4 @@ export * from "./update-form.input";
 export * from "./create-question.input";
 export * from "./update-question.input";
 export * from "./delete-question.input";
+export * from "./reorder-question.input";

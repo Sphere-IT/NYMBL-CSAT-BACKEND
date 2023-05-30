@@ -27,6 +27,7 @@ import { FormModule } from "./form/form.module";
           password: cnf.get("DB_PASSWORD"),
           user: cnf.get("DB_USER"),
           debug: true,
+          timezone: "UTC",
           // logger: true,
           // logger: console.log,
         };

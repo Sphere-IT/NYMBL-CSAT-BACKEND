@@ -12,12 +12,15 @@ import {
   DeleteFormInput,
   DeleteQuestionInput,
   FormListingInput,
+  ReorderQuestionInput,
   UpdateFormInput,
   UpdateQuestionInput,
 } from "./dto/input";
 import { FilterFormResponse } from "./dto/args";
 import { SuccessResponse } from "src/common/dto/args";
 import validator from "validator";
+import { REORDER_DIRECTION } from "./constants";
+import { Loaded } from "@mikro-orm/core";
 
 @Injectable()
 export class FormService {
@@ -246,6 +249,61 @@ export class FormService {
       return {
         success: true,
         message: "Question updated successfully",
+      };
+    } catch (err) {
+      throw new BadRequestException(err?.message, err);
+    }
+  }
+
+  public async reorderQuestion(
+    input: ReorderQuestionInput,
+    userId: string,
+  ): Promise<SuccessResponse> {
+    try {
+      const q = await this.questionRepository.findOne({
+        idQuestion: input.questionId,
+      });
+      if (!q) {
+        throw new NotFoundException("Question not found");
+      }
+
+      let nextQ: Loaded<QuestionEntity> = null;
+
+      if (input.direction === REORDER_DIRECTION.DOWNWARDS) {
+        nextQ = await this.questionRepository.findOne({
+          $and: [
+            { refIdForm: q.refIdForm },
+            { questionOrder: q.questionOrder - 1 },
+          ],
+        });
+      } else {
+        nextQ = await this.questionRepository.findOne({
+          $and: [
+            { refIdForm: q.refIdForm },
+            { questionOrder: q.questionOrder + 1 },
+          ],
+        });
+      }
+
+      if (!nextQ) {
+        throw new BadRequestException("Cannot perform action");
+      }
+
+      const prevIndex = q.questionOrder;
+      const nextIndex = nextQ.questionOrder;
+      q.questionOrder = nextIndex;
+      q.updatedAt = new Date();
+      q.updatedBy = userId;
+      nextQ.questionOrder = prevIndex;
+      nextQ.updatedAt = new Date();
+      nextQ.updatedBy = userId;
+
+      await this.em.persistAndFlush(q);
+      await this.em.persistAndFlush(nextQ);
+
+      return {
+        success: true,
+        message: "Reorder successful",
       };
     } catch (err) {
       throw new BadRequestException(err?.message, err);

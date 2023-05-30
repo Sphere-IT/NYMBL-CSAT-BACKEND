@@ -98,10 +98,11 @@ type Mutation {
   createForm(input: CreateFormInput!): SuccessResponse!
   createQuestion(input: CreateQuestionInput!): SuccessResponse!
   createTeamMember(input: CreateTeamMemberInput!): SuccessResponse!
-  deleteFormInput(input: DeleteFormInput!): SuccessResponse!
+  deleteForm(input: DeleteFormInput!): SuccessResponse!
   deleteQuestion(input: DeleteQuestionInput!): SuccessResponse!
   deleteTeamMember(teamMemberId: Float!): SuccessResponse!
   login(input: LoginInput!): LoginResponse!
+  reorderQuestion(input: ReorderQuestionInput!): SuccessResponse!
   updateForm(input: UpdateFormInput!): SuccessResponse!
   updateQuestion(input: UpdateQuestionInput!): SuccessResponse!
   updateTeamMember(input: UpdateTeamMemberInput!): SuccessResponse!
@@ -127,6 +128,16 @@ type QuestionEntity {
   refIdForm: Float!
   updatedAt: DateTime
   updatedBy: String
+}
+
+enum REORDER_DIRECTION {
+  DOWNWARDS
+  UPWARDS
+}
+
+input ReorderQuestionInput {
+  direction: REORDER_DIRECTION!
+  questionId: Float!
 }
 
 type SuccessResponse {

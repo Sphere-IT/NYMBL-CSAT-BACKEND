@@ -9,6 +9,7 @@ import {
   DeleteFormInput,
   DeleteQuestionInput,
   FormListingInput,
+  ReorderQuestionInput,
   UpdateFormInput,
   UpdateQuestionInput,
 } from "./dto/input";
@@ -50,7 +51,7 @@ export class FormResolver {
 
   @Mutation(() => SuccessResponse)
   @Allow()
-  async deleteFormInput(
+  async deleteForm(
     @Args("input") input: DeleteFormInput,
     @CurrentUser() currentUser,
   ) {
@@ -82,5 +83,14 @@ export class FormResolver {
     @CurrentUser() currentUser,
   ) {
     return await this.formService.deleteQuestion(input, currentUser.userId);
+  }
+
+  @Mutation(() => SuccessResponse)
+  // @Allow()
+  async reorderQuestion(
+    @Args("input") input: ReorderQuestionInput,
+    @CurrentUser() currentUser,
+  ) {
+    return await this.formService.reorderQuestion(input, currentUser.userId);
   }
 }
