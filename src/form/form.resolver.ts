@@ -70,7 +70,7 @@ export class FormResolver {
   async updateQuestion(
     @Args("input") input: UpdateQuestionInput,
     @CurrentUser() currentUser,
-  ){
-    return await this.updateQuestion(input, currentUser.userId);
+  ) {
+    return await this.formService.updateQuestion(input, currentUser.userId);
   }
 }

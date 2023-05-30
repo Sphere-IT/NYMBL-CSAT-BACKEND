@@ -237,8 +237,26 @@ export class FormService {
     }
   }
 
-  public async deleteQuestion(input: DeleteQuestionInput, userId: string){
-    try {} catch (err) {
+  public async deleteQuestion(
+    input: DeleteQuestionInput,
+    userId: string,
+  ): Promise<SuccessResponse> {
+    try {
+      const question = await this.questionRepository.findOne({
+        idQuestion: input.questionId,
+      });
+      if (!question) {
+        throw new BadRequestException("Question does not exist");
+      }
+      question.updatedAt = new Date();
+      question.updatedBy = userId;
+      question.isActive = false;
+      await this.em.persistAndFlush(question);
+      return {
+        success: true,
+        message: "Question updated successfully",
+      };
+    } catch (err) {
       throw new BadRequestException(err?.message, err);
     }
   }

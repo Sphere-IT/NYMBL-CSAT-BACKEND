@@ -115,6 +115,7 @@ type QuestionEntity {
   createdBy: String!
   form: FormEntity
   idQuestion: Float!
+  isActive: Boolean
   questionDetails: String!
   questionOrder: Float!
   questionType: Float!
