@@ -50,6 +50,10 @@ input DeleteFormInput {
   formId: Float!
 }
 
+input DeleteQuestionInput {
+  questionId: Float!
+}
+
 type FilterFormResponse {
   hasMore: Boolean!
   items: [FormEntity!]!
@@ -95,6 +99,7 @@ type Mutation {
   createQuestion(input: CreateQuestionInput!): SuccessResponse!
   createTeamMember(input: CreateTeamMemberInput!): SuccessResponse!
   deleteFormInput(input: DeleteFormInput!): SuccessResponse!
+  deleteQuestion(input: DeleteQuestionInput!): SuccessResponse!
   deleteTeamMember(teamMemberId: Float!): SuccessResponse!
   login(input: LoginInput!): LoginResponse!
   updateForm(input: UpdateFormInput!): SuccessResponse!

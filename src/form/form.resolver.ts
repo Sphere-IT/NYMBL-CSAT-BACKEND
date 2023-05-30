@@ -7,6 +7,7 @@ import {
   CreateFormInput,
   CreateQuestionInput,
   DeleteFormInput,
+  DeleteQuestionInput,
   FormListingInput,
   UpdateFormInput,
   UpdateQuestionInput,
@@ -72,5 +73,14 @@ export class FormResolver {
     @CurrentUser() currentUser,
   ) {
     return await this.formService.updateQuestion(input, currentUser.userId);
+  }
+
+  @Mutation(() => SuccessResponse)
+  @Allow()
+  async deleteQuestion(
+    @Args("input") input: DeleteQuestionInput,
+    @CurrentUser() currentUser,
+  ) {
+    return await this.formService.deleteQuestion(input, currentUser.userId);
   }
 }
