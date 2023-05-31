@@ -1,5 +1,5 @@
-import { Property } from '@mikro-orm/core';
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Property } from "@mikro-orm/core";
+import { Field, ObjectType } from "@nestjs/graphql";
 
 @ObjectType()
 export class BaseEntity {

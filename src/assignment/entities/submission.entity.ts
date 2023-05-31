@@ -8,11 +8,12 @@
 );
  */
 
-import { Entity, Property } from '@mikro-orm/core';
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Entity, Property } from "@mikro-orm/core";
+import { Field, ObjectType } from "@nestjs/graphql";
+import { BaseEntity } from "src/common/entities";
 
 @ObjectType()
-@Entity({ tableName: 'submission' })
+@Entity({ tableName: "submission" })
 export class SubmissionEntity {
   @Property({ primary: true, autoincrement: true })
   @Field(() => Number)
@@ -27,6 +28,14 @@ export class SubmissionEntity {
   refIdAssignment: number;
 
   @Property()
-  @Field(() => Number)
-  value: number;
+  @Field(() => String)
+  value: string;
+
+  @Property({ nullable: true })
+  @Field(() => String, { nullable: true })
+  createdBy?: string;
+
+  @Property({ nullable: true })
+  @Field(() => Date, { nullable: true })
+  createdAt?: Date;
 }

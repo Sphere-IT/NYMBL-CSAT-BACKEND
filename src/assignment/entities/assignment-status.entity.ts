@@ -6,11 +6,11 @@
 );
  */
 
-import { Entity, Property } from '@mikro-orm/core';
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Entity, Property } from "@mikro-orm/core";
+import { Field, ObjectType } from "@nestjs/graphql";
 
 @ObjectType()
-@Entity({ tableName: 'assignment_status' })
+@Entity({ tableName: "assignment_status" })
 export class AssignmentStatusEntity {
   @Property({ primary: true, autoincrement: true })
   @Field(() => Number)

@@ -1,6 +1,8 @@
-import { Entity, Property } from '@mikro-orm/core';
-import { Field, ObjectType } from '@nestjs/graphql';
-import { BaseEntity } from 'src/common/entities';
+import { Entity, OneToOne, Property } from "@mikro-orm/core";
+import { Field, ObjectType } from "@nestjs/graphql";
+import { BaseEntity } from "src/common/entities";
+import { FormEntity } from "src/form/entities";
+import { AssignmentStatusEntity } from "./assignment-status.entity";
 
 /**
  * 
@@ -16,7 +18,7 @@ CREATE TABLE "assignments" (
 );
  */
 @ObjectType()
-@Entity({ tableName: 'assignments' })
+@Entity({ tableName: "assignments" })
 export class AssignmentEntity extends BaseEntity {
   @Property({ primary: true, autoincrement: true, nullable: false })
   @Field(() => Number)
@@ -49,4 +51,20 @@ export class AssignmentEntity extends BaseEntity {
   @Property()
   @Field(() => String)
   assignmentRef: string;
+
+  @OneToOne(() => FormEntity, {
+    joinColumn: "ref_id_form",
+    referenceColumnName: "id_form",
+    nullable: true,
+  })
+  @Field(() => FormEntity, { nullable: true })
+  form?: FormEntity;
+
+  @OneToOne(() => AssignmentStatusEntity, {
+    joinColumn: "ref_id_status",
+    referenceColumnName: "id_status",
+    nullable: true,
+  })
+  @Field(() => AssignmentStatusEntity, { nullable: true })
+  status?: AssignmentStatusEntity;
 }

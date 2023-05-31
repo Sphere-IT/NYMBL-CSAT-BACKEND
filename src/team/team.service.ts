@@ -147,6 +147,7 @@ export class TeamService {
       refIdDepartment: input?.refIdDepartment || null,
       createdAt: new Date(),
       createdBy: userId.toString(),
+      isActive: true,
     });
 
     await this.em.persistAndFlush(member);

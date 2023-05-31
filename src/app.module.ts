@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { HttpStatus, Module } from "@nestjs/common";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { GraphQLModule } from "@nestjs/graphql";
@@ -11,6 +11,7 @@ import { entities } from "./common/config";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { AuthModule } from "./auth/auth.module";
 import { FormModule } from "./form/form.module";
+import { GraphQLError, GraphQLFormattedError } from "graphql";
 
 @Module({
   imports: [
@@ -38,6 +39,27 @@ import { FormModule } from "./form/form.module";
       sortSchema: true,
       driver: ApolloDriver,
       playground: true,
+      fieldResolverEnhancers: ["interceptors"],
+      formatError: (error: GraphQLError | any) => {
+        // GraphQLError type
+        // => format errors
+        console.log(
+          JSON.stringify(error),
+          error?.extensions?.response?.message,
+        );
+        const graphQLFormattedError: GraphQLFormattedError & {
+          status: HttpStatus;
+        } = {
+          status:
+            error?.extensions?.response?.statusCode ||
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          message:
+            error?.extensions?.response?.message ||
+            error?.message ||
+            "Something went wrong",
+        };
+        return graphQLFormattedError;
+      },
     }),
     TeamModule,
     AssignmentModule,

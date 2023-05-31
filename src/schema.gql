@@ -6,6 +6,7 @@ type AssignmentEntity {
   assignmentRef: String!
   createdAt: DateTime!
   createdBy: String!
+  form: FormEntity
   idAssignment: Float!
   message: String!
   name: String!
@@ -13,8 +14,15 @@ type AssignmentEntity {
   refIdForm: Float!
   refIdStatus: Float!
   refIdTeamMember: Float!
+  status: AssignmentStatusEntity
   updatedAt: DateTime
   updatedBy: String
+}
+
+type AssignmentStatusEntity {
+  idStatus: Float!
+  statusCode: String!
+  statusName: String!
 }
 
 input CreateAssignmentInput {
@@ -83,6 +91,13 @@ input FormListingInput {
   offset: Float!
 }
 
+type GetAssignmentResponse {
+  assignmentRef: String!
+  currentQuestion: QuestionEntity
+  questions: [QuestionEntity!]!
+  status: AssignmentStatusEntity!
+}
+
 input LoginInput {
   password: String!
   username: String!
@@ -103,6 +118,7 @@ type Mutation {
   deleteTeamMember(teamMemberId: Float!): SuccessResponse!
   login(input: LoginInput!): LoginResponse!
   reorderQuestion(input: ReorderQuestionInput!): SuccessResponse!
+  submitAnswer(input: SubmitAnswerInput!): SuccessResponse!
   updateForm(input: UpdateFormInput!): SuccessResponse!
   updateQuestion(input: UpdateQuestionInput!): SuccessResponse!
   updateTeamMember(input: UpdateTeamMemberInput!): SuccessResponse!
@@ -111,6 +127,7 @@ type Mutation {
 type Query {
   getAllForms(input: FormListingInput!): FilterFormResponse!
   getAllTeamMembers(input: TeamListingInput!): FilterTeamResponse!
+  getAssignment(assignmentRef: String!): GetAssignmentResponse!
   getFormDetails(formId: Float!): FormEntity!
   getHello: String!
   getTeamMemberDetails(input: Float!): TeamMemberDetailsResponse!
@@ -125,10 +142,17 @@ type QuestionEntity {
   isActive: Boolean
   questionDetails: String!
   questionOrder: Float!
+  questionType: QuestionTypeEntity
   refIdForm: Float!
   refIdQuestionType: Float
   updatedAt: DateTime
   updatedBy: String
+}
+
+type QuestionTypeEntity {
+  idQuestionType: Float!
+  questionTypeCode: String!
+  questionTypeName: String!
 }
 
 enum REORDER_DIRECTION {
@@ -138,6 +162,12 @@ enum REORDER_DIRECTION {
 
 input ReorderQuestionInput {
   direction: REORDER_DIRECTION!
+  questionId: Float!
+}
+
+input SubmitAnswerInput {
+  answer: String!
+  assignmentRef: String!
   questionId: Float!
 }
 

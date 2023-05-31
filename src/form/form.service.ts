@@ -58,10 +58,27 @@ export class FormService {
     return questions;
   }
 
+  public async getNextUnAnswered(ids: number[]) {
+    return this.questionRepository.findOne(
+      {
+        idQuestion: { $nin: ids },
+        isActive: true,
+      },
+      {
+        orderBy: {
+          questionOrder: "ASC",
+        },
+      },
+    );
+  }
+
   public async getQuestion(questionId: number): Promise<QuestionEntity> {
-    const question = await this.questionRepository.findOne({
-      idQuestion: questionId,
-    });
+    const question = await this.questionRepository.findOne(
+      {
+        idQuestion: questionId,
+      },
+      { populate: ["questionType"] },
+    );
     if (!question) throw new NotFoundException();
     return question;
   }
@@ -315,5 +332,12 @@ export class FormService {
     } catch (err) {
       throw new BadRequestException(err?.message, err);
     }
+  }
+
+  public async getFormQuestionCount(formId: number): Promise<number> {
+    return await this.questionRepository.count({
+      refIdForm: formId,
+      isActive: true,
+    });
   }
 }
