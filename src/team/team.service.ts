@@ -1,22 +1,23 @@
-import { InjectRepository } from '@mikro-orm/nestjs';
+import { InjectRepository } from "@mikro-orm/nestjs";
 import {
   BadRequestException,
   Inject,
   Injectable,
   NotFoundException,
   forwardRef,
-} from '@nestjs/common';
-import { TeamEntity } from './entities';
-import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
+} from "@nestjs/common";
+import { TeamEntity } from "./entities";
+import { EntityManager, EntityRepository } from "@mikro-orm/postgresql";
 import {
   CreateTeamMemberInput,
   TeamListingInput,
   UpdateTeamMemberInput,
-} from './dto/input';
-import { TeamMemberDetailsResponse } from './dto/args';
-import { AssignmentService } from 'src/assignment/assignment.service';
-import { SuccessResponse } from 'src/common/dto/args';
-import isEmail from 'validator/lib/isEmail';
+} from "./dto/input";
+import { TeamMemberDetailsResponse } from "./dto/args";
+import { AssignmentService } from "src/assignment/assignment.service";
+import { SuccessResponse } from "src/common/dto/args";
+import isEmail from "validator/lib/isEmail";
+import { FilterQuery } from "@mikro-orm/core";
 
 @Injectable()
 export class TeamService {
@@ -31,7 +32,7 @@ export class TeamService {
   public async getPaginatedTeamMembers() {
     const res = await this.teamRepository.findAll();
     console.log(res);
-    return 'hello';
+    return "hello";
   }
 
   public async findOneByUsername(username: string) {
@@ -47,14 +48,21 @@ export class TeamService {
   }
 
   public async filterTeamMembers(input: TeamListingInput) {
-    let filter = {};
+    let filter: FilterQuery<TeamEntity> = {
+      isActive: true,
+    };
     if (input.name) {
       filter = {
-        $or: [
-          { firstName: { $ilike: input.name } },
-          { lastName: { $ilike: input.name } },
-          { email: { $ilike: input.name } },
-          { contact: { $ilike: input.name } },
+        $and: [
+          { isActive: true },
+          {
+            $or: [
+              { firstName: { $ilike: input.name } },
+              { lastName: { $ilike: input.name } },
+              { email: { $ilike: input.name } },
+              { contact: { $ilike: input.name } },
+            ],
+          },
         ],
       };
     }
@@ -105,7 +113,7 @@ export class TeamService {
       !input.username ||
       !input.contact
     ) {
-      throw new BadRequestException('Invalid input');
+      throw new BadRequestException("Invalid input");
     }
 
     const oldMember = await this.teamRepository.findOne({
@@ -117,16 +125,16 @@ export class TeamService {
     });
 
     if (oldMember) {
-      throw new BadRequestException('User already exists');
+      throw new BadRequestException("User already exists");
     }
 
     const r = RegExp(/^(?:\+971|00971|0)?(?:50|51|52|55|56|2|3|4|6|7|9)\d{7}$/);
     if (!r.test(input.contact)) {
-      throw new BadRequestException('Phone number not valid');
+      throw new BadRequestException("Phone number not valid");
     }
 
     if (!isEmail(input.email)) {
-      throw new BadRequestException('Email address not valid');
+      throw new BadRequestException("Email address not valid");
     }
 
     const member = this.teamRepository.create({
@@ -145,7 +153,7 @@ export class TeamService {
 
     return {
       success: true,
-      message: 'Team member created successfully',
+      message: "Team member created successfully",
     };
   }
 
@@ -155,7 +163,7 @@ export class TeamService {
     });
 
     if (!member) {
-      throw new BadRequestException('User already exists');
+      throw new BadRequestException("User already exists");
     }
 
     if (input?.data?.contact) {
@@ -163,7 +171,7 @@ export class TeamService {
         /^(?:\+971|00971|0)?(?:50|51|52|55|56|2|3|4|6|7|9)\d{7}$/,
       );
       if (!r.test(input?.data?.contact)) {
-        throw new BadRequestException('Phone number not valid');
+        throw new BadRequestException("Phone number not valid");
       }
 
       const phoneUsed = await this.teamRepository.findOne({
@@ -172,13 +180,13 @@ export class TeamService {
       });
 
       if (phoneUsed) {
-        throw new BadRequestException('Phone number already exists');
+        throw new BadRequestException("Phone number already exists");
       }
     }
 
     if (input?.data?.email) {
       if (!isEmail(input?.data?.email)) {
-        throw new BadRequestException('Email address not valid');
+        throw new BadRequestException("Email address not valid");
       }
 
       const emailUsed = await this.teamRepository.findOne({
@@ -187,7 +195,7 @@ export class TeamService {
       });
 
       if (emailUsed) {
-        throw new BadRequestException('Email already exists');
+        throw new BadRequestException("Email already exists");
       }
     }
 
@@ -201,7 +209,7 @@ export class TeamService {
 
     return {
       success: true,
-      message: 'Member updated successfully',
+      message: "Member updated successfully",
     };
   }
 
@@ -215,7 +223,7 @@ export class TeamService {
       );
       return {
         success: true,
-        message: 'Team member deleted successfully',
+        message: "Team member deleted successfully",
       };
     } catch (err) {
       throw err;
@@ -227,7 +235,7 @@ export class TeamService {
       const member = await this.teamRepository.findOne({
         idTeamMember: teamMemberId,
       });
-      if (!member) throw new NotFoundException('User not found');
+      if (!member) throw new NotFoundException("User not found");
       return member;
     } catch (err) {
       throw new BadRequestException(err?.message, err);

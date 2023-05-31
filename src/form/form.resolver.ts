@@ -64,7 +64,7 @@ export class FormResolver {
     @Args("input") input: CreateQuestionInput,
     @CurrentUser() currentUser,
   ) {
-    return await this.createQuestion(input, currentUser.userId);
+    return await this.formService.createQuestion(input, currentUser.userId);
   }
 
   @Mutation(() => SuccessResponse)
@@ -86,11 +86,17 @@ export class FormResolver {
   }
 
   @Mutation(() => SuccessResponse)
-  // @Allow()
+  @Allow()
   async reorderQuestion(
     @Args("input") input: ReorderQuestionInput,
     @CurrentUser() currentUser,
   ) {
     return await this.formService.reorderQuestion(input, currentUser.userId);
+  }
+
+  @Query(() => FormEntity)
+  // @Allow()
+  async getFormDetails(@Args("formId") formId: number) {
+    return await this.formService.getFormDetails(formId);
   }
 }

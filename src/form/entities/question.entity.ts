@@ -23,8 +23,8 @@ export class QuestionEntity extends BaseEntity {
   questionOrder: number;
 
   @Property()
-  @Field(() => Number)
-  questionType: number;
+  @Field(() => Number, { nullable: true })
+  refIdQuestionType: number;
 
   @Property()
   @Field(() => Boolean, { nullable: true, defaultValue: true })

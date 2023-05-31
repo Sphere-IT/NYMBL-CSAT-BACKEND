@@ -111,6 +111,7 @@ type Mutation {
 type Query {
   getAllForms(input: FormListingInput!): FilterFormResponse!
   getAllTeamMembers(input: TeamListingInput!): FilterTeamResponse!
+  getFormDetails(formId: Float!): FormEntity!
   getHello: String!
   getTeamMemberDetails(input: Float!): TeamMemberDetailsResponse!
   listAllForms: [FormEntity!]!
@@ -124,8 +125,8 @@ type QuestionEntity {
   isActive: Boolean
   questionDetails: String!
   questionOrder: Float!
-  questionType: Float!
   refIdForm: Float!
+  refIdQuestionType: Float
   updatedAt: DateTime
   updatedBy: String
 }

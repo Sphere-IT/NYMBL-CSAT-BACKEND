@@ -37,6 +37,11 @@ export class FormService {
       { idForm: formId },
       {
         populate: ["questions"],
+        populateWhere: {
+          questions: {
+            isActive: true,
+          },
+        },
         orderBy: { questions: { questionOrder: "ASC" } },
       },
     );
@@ -92,6 +97,7 @@ export class FormService {
       const [items, count] = await this.formRepository.findAndCount(filter, {
         limit: input.limit,
         offset: input.offset,
+        // populate: ["questions"],
       });
       return {
         hasMore: input.offset < count,
@@ -117,6 +123,7 @@ export class FormService {
         createdBy: userId,
         formIsActive: true,
       });
+
       await this.em.persistAndFlush(form);
       return {
         success: true,
@@ -188,8 +195,11 @@ export class FormService {
       const question = this.questionRepository.create({
         questionDetails: input.questionText,
         questionOrder: questionIndex + 1,
+        refIdForm: input.formId,
         createdAt: new Date(),
         createdBy: userId,
+        refIdQuestionType: 1, //TODO: get question type
+        isActive: true, //TODO: update entity file
       });
       await this.em.persistAndFlush(question);
       return {
@@ -206,10 +216,7 @@ export class FormService {
     userId: string,
   ): Promise<SuccessResponse> {
     try {
-      if (
-        validator.isEmpty(input.questionText) ||
-        !validator.isAlphanumeric(input.questionText)
-      ) {
+      if (validator.isEmpty(input.questionText)) {
         throw new BadRequestException("Question not valid");
       }
       const question = await this.questionRepository.findOne({
@@ -273,14 +280,14 @@ export class FormService {
         nextQ = await this.questionRepository.findOne({
           $and: [
             { refIdForm: q.refIdForm },
-            { questionOrder: q.questionOrder - 1 },
+            { questionOrder: q.questionOrder + 1 },
           ],
         });
       } else {
         nextQ = await this.questionRepository.findOne({
           $and: [
             { refIdForm: q.refIdForm },
-            { questionOrder: q.questionOrder + 1 },
+            { questionOrder: q.questionOrder - 1 },
           ],
         });
       }
@@ -293,10 +300,10 @@ export class FormService {
       const nextIndex = nextQ.questionOrder;
       q.questionOrder = nextIndex;
       q.updatedAt = new Date();
-      q.updatedBy = userId;
+      q.updatedBy = userId.toString();
       nextQ.questionOrder = prevIndex;
       nextQ.updatedAt = new Date();
-      nextQ.updatedBy = userId;
+      nextQ.updatedBy = userId.toString();
 
       await this.em.persistAndFlush(q);
       await this.em.persistAndFlush(nextQ);
