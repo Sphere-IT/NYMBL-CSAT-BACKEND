@@ -12,6 +12,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { AuthModule } from "./auth/auth.module";
 import { FormModule } from "./form/form.module";
 import { GraphQLError, GraphQLFormattedError } from "graphql";
+import { SequelizeModule } from "@nestjs/sequelize";
 
 @Module({
   imports: [
