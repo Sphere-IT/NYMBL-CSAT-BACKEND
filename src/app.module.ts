@@ -29,8 +29,6 @@ import { GraphQLError, GraphQLFormattedError } from "graphql";
           user: cnf.get("DB_USER"),
           debug: true,
           timezone: "UTC",
-          // logger: true,
-          // logger: console.log,
         };
       },
     }),
@@ -41,8 +39,6 @@ import { GraphQLError, GraphQLFormattedError } from "graphql";
       playground: true,
       fieldResolverEnhancers: ["interceptors"],
       formatError: (error: GraphQLError | any) => {
-        // GraphQLError type
-        // => format errors
         console.log(
           JSON.stringify(error),
           error?.extensions?.response?.message,
