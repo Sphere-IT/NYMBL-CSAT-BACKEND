@@ -67,22 +67,26 @@ export class AssignmentService {
   }
 
   public async getTeamMemberComments(teamMemberId: number) {
-    const comments = await this.assignmentRepository.find(
-      { refIdTeamMember: teamMemberId },
-      { fields: ["message", "createdAt"], limit: 5 },
-    );
+    // const comments = await this.assignmentRepository.find(
+    //   { refIdTeamMember: teamMemberId },
+    //   { fields: ["message", "createdAt"], limit: 5 },
+    // );
+    //TODO: fixx
+    const comments = [];
     return comments;
   }
 
   public async getRecentSubmissions(teamMemberId: number) {
     try {
-      const submissions = await this.assignmentRepository.find(
-        { refIdTeamMember: teamMemberId },
-        {
-          limit: 5,
-          orderBy: { createdAt: "ASC" },
-        },
-      );
+      // await this.assignmentRepository.find(
+      //   { refIdTeamMember: teamMemberId },
+      //   {
+      //     limit: 5,
+      //     orderBy: { createdAt: "ASC" },
+      //   },
+      // );
+      //TODO: fixx
+      const submissions = [];
       return submissions;
     } catch (err) {
       throw new BadRequestException(err?.message, err);

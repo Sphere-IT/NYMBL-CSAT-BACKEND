@@ -1,43 +1,73 @@
-import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
-import { Field, ObjectType } from '@nestjs/graphql';
-import { BaseEntity } from 'src/common/entities';
+import { Field, ObjectType } from "@nestjs/graphql";
+import { Column, DataType, Model, Table } from "sequelize-typescript";
 
 @ObjectType()
-@Entity({ tableName: 'team_member' })
-export class TeamEntity extends BaseEntity {
-  @Property({ autoincrement: true, primary: true })
+@Table({ tableName: "team_member", underscored: true })
+export class TeamEntity extends Model<TeamEntity> {
+  @Column({
+    type: DataType.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  })
   @Field(() => Number, { nullable: true })
-  idTeamMember?: number;
+  idTeamMember: number;
 
-  @Property()
+  @Column(DataType.STRING)
   @Field(() => String)
   firstName: string;
 
-  @Property()
+  @Column(DataType.STRING)
   @Field(() => String)
   lastName: string;
 
-  @Property()
+  @Column(DataType.STRING)
   @Field(() => String)
   contact: string;
 
-  @Property()
+  @Column(DataType.STRING)
   @Field(() => String)
   email: string;
 
-  @Property()
-  @Field(() => String)
+  @Column(DataType.STRING)
+  @Field(() => String, { nullable: true })
   username: string;
 
-  @Property()
+  @Column(DataType.STRING)
   @Field(() => String)
   password: string;
 
-  @Property()
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+  })
   @Field(() => Number, { nullable: true })
   refIdDepartment?: number;
 
-  @Property()
-  @Field(() => Boolean, { nullable: true, defaultValue: true })
-  isActive?: boolean;
+  @Column({
+    type: DataType.CHAR,
+  })
+  @Field(() => String, { nullable: true })
+  isActive?: "Y" | "N";
+
+  @Column(DataType.DATE)
+  @Field(() => Date)
+  createdAt?: Date;
+
+  @Column(DataType.STRING)
+  @Field(() => String)
+  createdBy: string;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+  })
+  @Field(() => Date, { nullable: true })
+  updatedAt?: Date;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  @Field(() => String, { nullable: true })
+  updatedBy: string;
 }

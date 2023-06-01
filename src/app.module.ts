@@ -13,10 +13,27 @@ import { AuthModule } from "./auth/auth.module";
 import { FormModule } from "./form/form.module";
 import { GraphQLError, GraphQLFormattedError } from "graphql";
 import { SequelizeModule } from "@nestjs/sequelize";
+import { TeamEntity } from "./team/entities";
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
+    SequelizeModule.forRootAsync({
+      inject: [ConfigService],
+      imports: [ConfigModule],
+      useFactory: (cnf: ConfigService) => {
+        return {
+          dialect: "postgres",
+          host: cnf.get("DB_HOST"),
+          port: cnf.get("DB_PORT"),
+          username: cnf.get("DB_USER"),
+          password: cnf.get("DB_PASSWORD"),
+          database: cnf.get("DB_NAME"),
+          models: [TeamEntity],
+          synchronize: false,
+        };
+      },
+    }),
     MikroOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

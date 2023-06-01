@@ -1,4 +1,4 @@
-import { InjectRepository } from "@mikro-orm/nestjs";
+// import { InjectRepository } from "@mikro-orm/nestjs";
 import {
   BadRequestException,
   Inject,
@@ -7,7 +7,7 @@ import {
   forwardRef,
 } from "@nestjs/common";
 import { TeamEntity } from "./entities";
-import { EntityManager, EntityRepository } from "@mikro-orm/postgresql";
+import { EntityManager } from "@mikro-orm/postgresql";
 import {
   CreateTeamMemberInput,
   TeamListingInput,
@@ -18,12 +18,17 @@ import { AssignmentService } from "src/assignment/assignment.service";
 import { SuccessResponse } from "src/common/dto/args";
 import isEmail from "validator/lib/isEmail";
 import { FilterQuery } from "@mikro-orm/core";
+import { InjectModel } from "@nestjs/sequelize";
+import { Repository } from "sequelize-typescript";
+import { FindAndCountOptions, Op } from "sequelize";
 
 @Injectable()
 export class TeamService {
   constructor(
-    @InjectRepository(TeamEntity)
-    private teamRepository: EntityRepository<TeamEntity>,
+    // @InjectRepository(TeamEntity)
+    // private teamRepository: EntityRepository<TeamEntity>,
+    @InjectModel(TeamEntity)
+    private teamRepository: typeof TeamEntity,
     @Inject(forwardRef(() => AssignmentService))
     private assignmentService: AssignmentService,
     private em: EntityManager,
@@ -36,41 +41,58 @@ export class TeamService {
   }
 
   public async findOneByUsername(username: string) {
-    return await this.teamRepository.findOne({ username });
+    const a = await this.teamRepository.findOne({
+      where: {
+        username,
+      },
+      raw: true,
+    });
+    return a;
   }
 
   public async validateTeamMemberExist(teamMemberId: number): Promise<boolean> {
     const teamMember = await this.teamRepository.findOne({
-      idTeamMember: teamMemberId,
+      where: {
+        idTeamMember: teamMemberId,
+      },
+      raw: true,
     });
     if (!teamMember) return false;
     return true;
   }
 
   public async filterTeamMembers(input: TeamListingInput) {
-    let filter: FilterQuery<TeamEntity> = {
-      isActive: true,
+    let filter: FindAndCountOptions<TeamEntity> = {
+      where: {
+        isActive: "Y",
+      },
+      raw: true,
+      offset: input.offset,
+      limit: input.limit,
+      order: [["firstName", "ASC"]],
     };
     if (input.name) {
       filter = {
-        $and: [
-          { isActive: true },
-          {
-            $or: [
-              { firstName: { $ilike: input.name } },
-              { lastName: { $ilike: input.name } },
-              { email: { $ilike: input.name } },
-              { contact: { $ilike: input.name } },
-            ],
+        offset: input.offset,
+        limit: input.limit,
+        order: [["firstName", "ASC"]],
+        raw: true,
+        where: {
+          [Op.and]: {
+            isActive: "Y",
+            [Op.or]: {
+              firstName: { [Op.like]: input.name },
+              lastName: { [Op.like]: input.name },
+              email: { [Op.like]: input.name },
+              contact: { [Op.like]: input.name },
+            },
           },
-        ],
+        },
       };
     }
-    const [items, count] = await this.teamRepository.findAndCount(filter, {
-      limit: input.limit,
-      offset: input.offset,
-    });
-
+    const aa = await this.teamRepository.findAndCountAll(filter);
+    const count = aa.count;
+    const items = aa.rows;
     return {
       hasMore: input.offset < count,
       items,
@@ -83,7 +105,9 @@ export class TeamService {
   ): Promise<TeamMemberDetailsResponse> {
     try {
       const member = await this.teamRepository.findOne({
-        idTeamMember: teamMemberId,
+        where: {
+          idTeamMember: teamMemberId,
+        },
       });
       const comments = await this.assignmentService.getTeamMemberComments(
         teamMemberId,
@@ -117,11 +141,13 @@ export class TeamService {
     }
 
     const oldMember = await this.teamRepository.findOne({
-      $or: [
-        { contact: input.contact },
-        { email: input.email },
-        { username: input.username },
-      ],
+      where: {
+        [Op.or]: {
+          contact: input.contact,
+          email: input.email,
+          username: input.username,
+        },
+      },
     });
 
     if (oldMember) {
@@ -137,7 +163,7 @@ export class TeamService {
       throw new BadRequestException("Email address not valid");
     }
 
-    const member = this.teamRepository.create({
+    await this.teamRepository.create({
       firstName: input.firstName,
       lastName: input.lastName,
       email: input.email,
@@ -147,10 +173,8 @@ export class TeamService {
       refIdDepartment: input?.refIdDepartment || null,
       createdAt: new Date(),
       createdBy: userId.toString(),
-      isActive: true,
+      isActive: "Y",
     });
-
-    await this.em.persistAndFlush(member);
 
     return {
       success: true,
@@ -160,7 +184,7 @@ export class TeamService {
 
   public async updateTeamMember(input: UpdateTeamMemberInput, userId: number) {
     const member = await this.teamRepository.findOne({
-      idTeamMember: input.teamMemberId,
+      where: { idTeamMember: input.teamMemberId },
     });
 
     if (!member) {
@@ -176,8 +200,10 @@ export class TeamService {
       }
 
       const phoneUsed = await this.teamRepository.findOne({
-        contact: input.data.contact,
-        idTeamMember: { $ne: input.teamMemberId },
+        where: {
+          contact: input.data.contact,
+          idTeamMember: { $ne: input.teamMemberId },
+        },
       });
 
       if (phoneUsed) {
@@ -191,8 +217,10 @@ export class TeamService {
       }
 
       const emailUsed = await this.teamRepository.findOne({
-        contact: input.data.contact,
-        idTeamMember: { $ne: input.teamMemberId },
+        where: {
+          contact: input.data.contact,
+          idTeamMember: { $ne: input.teamMemberId },
+        },
       });
 
       if (emailUsed) {
@@ -200,13 +228,18 @@ export class TeamService {
       }
     }
 
-    await this.teamRepository.assign(member, {
-      ...input.data,
-      updatedBy: userId.toString(),
-      updatedAt: new Date(),
-    });
-
-    await this.em.persistAndFlush(member);
+    await this.teamRepository.update(
+      {
+        ...input.data,
+        updatedBy: userId.toString(),
+        updatedAt: new Date(),
+      },
+      {
+        where: {
+          idTeamMember: input.teamMemberId,
+        },
+      },
+    );
 
     return {
       success: true,
@@ -218,9 +251,9 @@ export class TeamService {
     teamMemberId: number,
   ): Promise<SuccessResponse> {
     try {
-      await this.teamRepository.nativeUpdate(
-        { idTeamMember: teamMemberId },
-        { isActive: false },
+      await this.teamRepository.update(
+        { isActive: "N" },
+        { where: { idTeamMember: teamMemberId } },
       );
       return {
         success: true,
@@ -234,7 +267,7 @@ export class TeamService {
   public async getTeamMember(teamMemberId: number): Promise<TeamEntity> {
     try {
       const member = await this.teamRepository.findOne({
-        idTeamMember: teamMemberId,
+        where: { idTeamMember: teamMemberId },
       });
       if (!member) throw new NotFoundException("User not found");
       return member;

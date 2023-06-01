@@ -13,7 +13,7 @@ import {
 
 export const entities = [
   BaseEntity,
-  TeamEntity,
+  // TeamEntity,
   AssignmentEntity,
   AssignmentStatusEntity,
   SubmissionEntity,

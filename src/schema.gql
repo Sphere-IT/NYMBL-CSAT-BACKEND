@@ -183,13 +183,13 @@ type TeamEntity {
   email: String!
   firstName: String!
   idTeamMember: Float
-  isActive: Boolean
+  isActive: String
   lastName: String!
   password: String!
   refIdDepartment: Float
   updatedAt: DateTime
   updatedBy: String
-  username: String!
+  username: String
 }
 
 input TeamListingInput {
