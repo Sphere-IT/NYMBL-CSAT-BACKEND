@@ -12,8 +12,8 @@ import {
 } from "src/form/entities";
 
 export const entities = [
-  BaseEntity,
-  // TeamEntity,
+  // BaseEntity,
+  TeamEntity,
   AssignmentEntity,
   AssignmentStatusEntity,
   SubmissionEntity,

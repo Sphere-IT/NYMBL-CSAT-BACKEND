@@ -8,34 +8,57 @@
 );
  */
 
-import { Entity, Property } from "@mikro-orm/core";
 import { Field, ObjectType } from "@nestjs/graphql";
-import { BaseEntity } from "src/common/entities";
+import { Column, DataType, Table, Model } from "sequelize-typescript";
 
 @ObjectType()
-@Entity({ tableName: "submission" })
-export class SubmissionEntity {
-  @Property({ primary: true, autoincrement: true })
+@Table({ tableName: "submission", underscored: true })
+export class SubmissionEntity extends Model<SubmissionEntity> {
+  @Column({
+    type: DataType.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  })
   @Field(() => Number)
   idSubmission: number;
 
-  @Property()
+  @Column({
+    type: DataType.INTEGER,
+  })
   @Field(() => Number)
   refIdQuestion: number;
 
-  @Property()
+  @Column({
+    type: DataType.INTEGER,
+  })
   @Field(() => Number)
   refIdAssignment: number;
 
-  @Property()
+  @Column({
+    type: DataType.STRING,
+  })
   @Field(() => String)
   value: string;
 
-  @Property({ nullable: true })
-  @Field(() => String, { nullable: true })
-  createdBy?: string;
-
-  @Property({ nullable: true })
-  @Field(() => Date, { nullable: true })
+  @Column(DataType.DATE)
+  @Field(() => Date)
   createdAt?: Date;
+
+  @Column(DataType.STRING)
+  @Field(() => String)
+  createdBy: string;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+  })
+  @Field(() => Date, { nullable: true })
+  updatedAt?: Date;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  @Field(() => String, { nullable: true })
+  updatedBy: string;
 }

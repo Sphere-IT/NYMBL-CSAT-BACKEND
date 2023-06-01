@@ -1,24 +1,55 @@
-import { Collection, Entity, OneToMany, Property } from "@mikro-orm/core";
 import { Field, ObjectType } from "@nestjs/graphql";
-import { BaseEntity } from "src/common/entities";
 import { QuestionEntity } from "./question.entity";
+import { Column, DataType, Table, Model, PrimaryKey, HasMany } from "sequelize-typescript";
 
 @ObjectType()
-@Entity({ tableName: "form" })
-export class FormEntity extends BaseEntity {
-  @Property({ nullable: false, primary: true, autoincrement: true })
+@Table({ tableName: "form", underscored: true })
+export class FormEntity extends Model<FormEntity> {
+  // @Column({
+  //   type: DataType.INTEGER,
+  //   allowNull: false,
+  //   autoIncrement: true,
+  // })
+  @PrimaryKey
+  @Column
   @Field(() => Number)
   idForm: number;
 
-  @Property()
+  @Column({
+    type: DataType.STRING,
+  })
   @Field(() => String)
   formName: string;
 
-  @Property()
-  @Field(() => Boolean)
-  formIsActive?: boolean;
+  @Column({
+    type: DataType.STRING,
+  })
+  @Field(() => String)
+  formIsActive?: "Y" | "N";
 
-  @OneToMany(() => QuestionEntity, (q) => q.form, { nullable: true })
+  @Column(DataType.DATE)
+  @Field(() => Date)
+  createdAt?: Date;
+
+  @Column(DataType.STRING)
+  @Field(() => String)
+  createdBy: string;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+  })
+  @Field(() => Date, { nullable: true })
+  updatedAt?: Date;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  @Field(() => String, { nullable: true })
+  updatedBy: string;
+
+  @HasMany(() => QuestionEntity, "refIdForm")
   @Field(() => [QuestionEntity], { nullable: true })
-  questions? = new Collection<QuestionEntity>(this);
+  questions?: QuestionEntity[];
 }

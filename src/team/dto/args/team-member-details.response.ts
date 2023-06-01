@@ -1,6 +1,6 @@
-import { Field, ObjectType } from '@nestjs/graphql';
-import { AssignmentEntity } from 'src/assignment/entities';
-import { TeamEntity } from 'src/team/entities';
+import { Field, ObjectType } from "@nestjs/graphql";
+import { AssignmentEntity } from "src/assignment/entities";
+import { TeamEntity } from "src/team/entities";
 
 @ObjectType()
 class TeamMemberCommentType {

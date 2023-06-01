@@ -1,11 +1,9 @@
-import { InjectRepository } from "@mikro-orm/nestjs";
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { FormEntity, QuestionEntity } from "./entities";
-import { EntityManager, EntityRepository } from "@mikro-orm/postgresql";
+import { FormEntity, QuestionEntity, QuestionTypeEntity } from "./entities";
 import {
   CreateFormInput,
   CreateQuestionInput,
@@ -21,104 +19,128 @@ import { SuccessResponse } from "src/common/dto/args";
 import validator from "validator";
 import { REORDER_DIRECTION } from "./constants";
 import { Loaded } from "@mikro-orm/core";
+import { InjectModel } from "@nestjs/sequelize";
+import { FindAndCountOptions, Op } from "sequelize";
 
 @Injectable()
 export class FormService {
   constructor(
-    @InjectRepository(FormEntity)
-    private formRepository: EntityRepository<FormEntity>,
-    @InjectRepository(QuestionEntity)
-    private questionRepository: EntityRepository<QuestionEntity>,
-    private em: EntityManager,
+    @InjectModel(FormEntity)
+    private formRepository: typeof FormEntity,
+    @InjectModel(QuestionEntity)
+    private questionRepository: typeof QuestionEntity,
   ) {}
 
   public async getFormDetails(formId: number): Promise<FormEntity> {
     const f = await this.formRepository.findOne(
-      { idForm: formId },
       {
-        populate: ["questions"],
-        populateWhere: {
-          questions: {
-            isActive: true,
-          },
+        raw: true,
+        where: {
+          idForm: formId,
         },
-        orderBy: { questions: { questionOrder: "ASC" } },
       },
+      // order: { questions: { questionOrder: "ASC" } },
+      // {
+      //   populate: ["questions"],
+      //   populateWhere: {
+      //     questions: {
+      //       isActive: "Y",
+      //     },
+      //   },
+
+      // },//TODO: fix me
     );
     if (!f) throw new NotFoundException();
     return f;
   }
 
   public async getFormQuestions(formId: number): Promise<QuestionEntity[]> {
-    const questions = await this.questionRepository.find(
-      { refIdForm: formId },
-      { orderBy: { questionOrder: "ASC" } },
-    );
+    const questions = await this.questionRepository.findAll({
+      where: {
+        refIdForm: formId,
+      },
+      order: [["questionOrder", "ASC"]],
+      raw: true,
+    });
     if (!questions?.length) throw new NotFoundException();
     return questions;
   }
 
   public async getNextUnAnswered(ids: number[]) {
-    return this.questionRepository.findOne(
-      {
-        idQuestion: { $nin: ids },
-        isActive: true,
+    return this.questionRepository.findOne({
+      where: {
+        idQuestion: { [Op.notIn]: ids },
+        isActive: "Y",
       },
-      {
-        orderBy: {
-          questionOrder: "ASC",
-        },
-      },
-    );
+      raw: true,
+      order: [["questionOrder", "ASC"]],
+    });
   }
 
   public async getQuestion(questionId: number): Promise<QuestionEntity> {
     const question = await this.questionRepository.findOne(
       {
-        idQuestion: questionId,
+        raw: true,
+        where: {
+          idQuestion: questionId,
+        },
+        include: [QuestionTypeEntity],
       },
-      { populate: ["questionType"] },
+      // {
+      //   idQuestion: questionId,
+      // },
+      // { populate: ["questionType"] },//TODO:fix me
     );
     if (!question) throw new NotFoundException();
     return question;
   }
 
   public async validateFormExist(formId: number): Promise<boolean> {
-    const form = await this.formRepository.findOne({ idForm: formId });
+    const form = await this.formRepository.findOne({
+      raw: true,
+      where: { idForm: formId },
+    });
     if (!form) return false;
     return true;
   }
 
   public async validateQuestionExist(questionId: number): Promise<boolean> {
     const question = await this.questionRepository.findOne({
-      idQuestion: questionId,
+      raw: true,
+      where: { idQuestion: questionId },
     });
     if (!question) return false;
     return true;
   }
 
   public async getAllForms() {
-    return await this.formRepository.find({ formIsActive: true });
+    return await this.formRepository.findAll({
+      raw: true,
+      where: { formIsActive: "Y" },
+    });
   }
 
   public async filterForms(
     input: FormListingInput,
   ): Promise<FilterFormResponse> {
     try {
-      const filter = {
-        formIsActive: true,
+      const filter: FindAndCountOptions<FormEntity> = {
+        where: { formIsActive: "Y" },
       };
       if (input.name) {
-        filter["formName"] = { $ilike: input.name };
+        filter.where["formName"] = { [Op.like]: input.name };
+        // filter["formName"] = { $ilike: input.name };
       }
-      const [items, count] = await this.formRepository.findAndCount(filter, {
+      const { rows, count } = await this.formRepository.findAndCountAll({
+        ...filter,
         limit: input.limit,
         offset: input.offset,
-        // populate: ["questions"],
+        raw: true,
+        // populate: ["questions"],//TODO: fix me
       });
       return {
         hasMore: input.offset < count,
-        items,
+        items: rows,
         total: count,
       };
     } catch (err) {
@@ -134,14 +156,12 @@ export class FormService {
       if (validator.isEmpty(input.formName)) {
         throw new BadRequestException("Form name not valid");
       }
-      const form = this.formRepository.create({
+      await this.formRepository.create({
         formName: input.formName,
         createdAt: new Date(),
         createdBy: userId,
-        formIsActive: true,
+        formIsActive: "Y",
       });
-
-      await this.em.persistAndFlush(form);
       return {
         success: true,
         message: "Form created successfully",
@@ -159,12 +179,14 @@ export class FormService {
       if (validator.isEmpty(input.formName)) {
         throw new BadRequestException("Form name not valid");
       }
-      const form = await this.formRepository.findOne({ idForm: input.formId });
+      const form = await this.formRepository.findOne({
+        where: { idForm: input.formId },
+      });
       if (!form) throw new NotFoundException("Form does not exist");
       form.formName = input.formName;
       form.updatedAt = new Date();
       form.updatedBy = userId;
-      await this.em.persistAndFlush(form);
+      await form.save();
       return {
         success: true,
         message: "Form updated successfully",
@@ -179,12 +201,14 @@ export class FormService {
     userId,
   ): Promise<SuccessResponse> {
     try {
-      const form = await this.formRepository.findOne({ idForm: input.formId });
+      const form = await this.formRepository.findOne({
+        where: { idForm: input.formId },
+      });
       if (!form) throw new NotFoundException("Form does not exist");
-      form.formIsActive = false;
+      form.formIsActive = "Y";
       form.updatedAt = new Date();
       form.updatedBy = userId;
-      await this.em.persistAndFlush(form);
+      await form.save();
       return {
         success: true,
         message: "Form updated successfully",
@@ -207,18 +231,17 @@ export class FormService {
         throw new BadRequestException("Form does not exist");
       }
       const questionIndex = await this.questionRepository.count({
-        refIdForm: input.formId,
+        where: { refIdForm: input.formId },
       });
-      const question = this.questionRepository.create({
+      await this.questionRepository.create({
         questionDetails: input.questionText,
         questionOrder: questionIndex + 1,
         refIdForm: input.formId,
         createdAt: new Date(),
         createdBy: userId,
         refIdQuestionType: 1, //TODO: get question type
-        isActive: true, //TODO: update entity file
+        isActive: "Y", //TODO: update entity file
       });
-      await this.em.persistAndFlush(question);
       return {
         success: true,
         message: "Question created successfully",
@@ -237,7 +260,7 @@ export class FormService {
         throw new BadRequestException("Question not valid");
       }
       const question = await this.questionRepository.findOne({
-        idQuestion: input.questionId,
+        where: { idQuestion: input.questionId },
       });
       if (!question) {
         throw new BadRequestException("Question does not exist");
@@ -245,7 +268,7 @@ export class FormService {
       question.updatedAt = new Date();
       question.updatedBy = userId;
       question.questionDetails = input.questionText;
-      await this.em.persistAndFlush(question);
+      await question.save();
       return {
         success: true,
         message: "Question updated successfully",
@@ -261,15 +284,15 @@ export class FormService {
   ): Promise<SuccessResponse> {
     try {
       const question = await this.questionRepository.findOne({
-        idQuestion: input.questionId,
+        where: { idQuestion: input.questionId },
       });
       if (!question) {
         throw new BadRequestException("Question does not exist");
       }
       question.updatedAt = new Date();
       question.updatedBy = userId;
-      question.isActive = false;
-      await this.em.persistAndFlush(question);
+      question.isActive = "N";
+      await question.save();
       return {
         success: true,
         message: "Question updated successfully",
@@ -285,7 +308,7 @@ export class FormService {
   ): Promise<SuccessResponse> {
     try {
       const q = await this.questionRepository.findOne({
-        idQuestion: input.questionId,
+        where: { idQuestion: input.questionId },
       });
       if (!q) {
         throw new NotFoundException("Question not found");
@@ -295,17 +318,21 @@ export class FormService {
 
       if (input.direction === REORDER_DIRECTION.DOWNWARDS) {
         nextQ = await this.questionRepository.findOne({
-          $and: [
-            { refIdForm: q.refIdForm },
-            { questionOrder: q.questionOrder + 1 },
-          ],
+          where: {
+            [Op.and]: {
+              refIdForm: q.refIdForm,
+              questionOrder: q.questionOrder + 1,
+            },
+          },
         });
       } else {
         nextQ = await this.questionRepository.findOne({
-          $and: [
-            { refIdForm: q.refIdForm },
-            { questionOrder: q.questionOrder - 1 },
-          ],
+          where: {
+            [Op.and]: {
+              refIdForm: q.refIdForm,
+              questionOrder: q.questionOrder - 1,
+            },
+          },
         });
       }
 
@@ -322,8 +349,8 @@ export class FormService {
       nextQ.updatedAt = new Date();
       nextQ.updatedBy = userId.toString();
 
-      await this.em.persistAndFlush(q);
-      await this.em.persistAndFlush(nextQ);
+      await q.save();
+      await nextQ.save();
 
       return {
         success: true,
@@ -336,8 +363,10 @@ export class FormService {
 
   public async getFormQuestionCount(formId: number): Promise<number> {
     return await this.questionRepository.count({
-      refIdForm: formId,
-      isActive: true,
+      where: {
+        refIdForm: formId,
+        isActive: "Y",
+      },
     });
   }
 }

@@ -1,69 +1,104 @@
-import { Entity, OneToOne, Property } from "@mikro-orm/core";
 import { Field, ObjectType } from "@nestjs/graphql";
-import { BaseEntity } from "src/common/entities";
-import { FormEntity } from "src/form/entities";
+import {
+  Column,
+  DataType,
+  Table,
+  Model,
+  HasOne,
+  BelongsTo,
+  HasMany,
+} from "sequelize-typescript";
 import { AssignmentStatusEntity } from "./assignment-status.entity";
+import { Association } from "sequelize";
 
-/**
- * 
-CREATE TABLE "assignments" (
-  "id_assignment" SERIAL PRIMARY KEY,
-  "ref_id_form" varchar,
-  "ref_id_team_member" integer,
-  "created_at" timestamp,
-  "created_by" varchar,
-  "updated_at" timestamp,
-  "updated_by" varchar,
-  "ref_id_status" integer
-);
- */
 @ObjectType()
-@Entity({ tableName: "assignments" })
-export class AssignmentEntity extends BaseEntity {
-  @Property({ primary: true, autoincrement: true, nullable: false })
+@Table({ tableName: "assignments", underscored: true })
+export class AssignmentEntity extends Model<AssignmentEntity> {
+  @Column({
+    type: DataType.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  })
   @Field(() => Number)
   idAssignment: number;
 
-  @Property({ nullable: false })
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+  })
   @Field(() => Number)
   refIdForm: number;
 
-  @Property({ nullable: false })
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+  })
   @Field(() => Number)
   refIdTeamMember: number;
 
-  @Property({ nullable: false })
+  @Column({ type: DataType.INTEGER, allowNull: false })
   @Field(() => Number)
   refIdStatus: number;
 
-  @Property({ nullable: true })
+  @Column({ type: DataType.STRING, allowNull: true })
   @Field(() => String)
   name: string;
 
-  @Property({ nullable: true })
+  @Column({ type: DataType.STRING, allowNull: true })
   @Field(() => String)
   phone: string;
 
-  @Property({ nullable: true })
+  @Column({ type: DataType.STRING, allowNull: true })
   @Field(() => String)
   message: string;
 
-  @Property()
+  @Column({
+    type: DataType.STRING,
+  })
   @Field(() => String)
   assignmentRef: string;
 
-  @OneToOne(() => FormEntity, {
-    joinColumn: "ref_id_form",
-    referenceColumnName: "id_form",
-    nullable: true,
-  })
-  @Field(() => FormEntity, { nullable: true })
-  form?: FormEntity;
+  @Column(DataType.DATE)
+  @Field(() => Date)
+  createdAt?: Date;
 
-  @OneToOne(() => AssignmentStatusEntity, {
-    joinColumn: "ref_id_status",
-    referenceColumnName: "id_status",
-    nullable: true,
+  @Column(DataType.STRING)
+  @Field(() => String)
+  createdBy: string;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+  })
+  @Field(() => Date, { nullable: true })
+  updatedAt?: Date;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  @Field(() => String, { nullable: true })
+  updatedBy: string;
+
+  // @OneToOne(() => FormEntity, {
+  //   joinColumn: "ref_id_form",
+  //   referenceColumnName: "id_form",
+  //   nullable: true,
+  // })
+  // @Field(() => FormEntity, { nullable: true })
+  // form?: FormEntity;
+
+  // @OneToOne(() => AssignmentStatusEntity, {
+  //   joinColumn: "ref_id_status",
+  //   referenceColumnName: "id_status",
+  //   nullable: true,
+  // })
+  // @Field(() => AssignmentStatusEntity, { nullable: true })
+  // status?: AssignmentStatusEntity;
+
+  @HasOne(() => AssignmentStatusEntity, {
+    sourceKey: "refIdStatus",
+    foreignKey: "idStatus",
   })
   @Field(() => AssignmentStatusEntity, { nullable: true })
   status?: AssignmentStatusEntity;

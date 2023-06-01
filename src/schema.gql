@@ -6,7 +6,6 @@ type AssignmentEntity {
   assignmentRef: String!
   createdAt: DateTime!
   createdBy: String!
-  form: FormEntity
   idAssignment: Float!
   message: String!
   name: String!
@@ -77,7 +76,7 @@ type FilterTeamResponse {
 type FormEntity {
   createdAt: DateTime!
   createdBy: String!
-  formIsActive: Boolean!
+  formIsActive: String!
   formName: String!
   idForm: Float!
   questions: [QuestionEntity!]
@@ -137,9 +136,8 @@ type Query {
 type QuestionEntity {
   createdAt: DateTime!
   createdBy: String!
-  form: FormEntity
   idQuestion: Float!
-  isActive: Boolean
+  isActive: String
   questionDetails: String!
   questionOrder: Float!
   questionType: QuestionTypeEntity

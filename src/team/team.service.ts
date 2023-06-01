@@ -7,7 +7,6 @@ import {
   forwardRef,
 } from "@nestjs/common";
 import { TeamEntity } from "./entities";
-import { EntityManager } from "@mikro-orm/postgresql";
 import {
   CreateTeamMemberInput,
   TeamListingInput,
@@ -17,9 +16,7 @@ import { TeamMemberDetailsResponse } from "./dto/args";
 import { AssignmentService } from "src/assignment/assignment.service";
 import { SuccessResponse } from "src/common/dto/args";
 import isEmail from "validator/lib/isEmail";
-import { FilterQuery } from "@mikro-orm/core";
 import { InjectModel } from "@nestjs/sequelize";
-import { Repository } from "sequelize-typescript";
 import { FindAndCountOptions, Op } from "sequelize";
 
 @Injectable()
@@ -31,7 +28,6 @@ export class TeamService {
     private teamRepository: typeof TeamEntity,
     @Inject(forwardRef(() => AssignmentService))
     private assignmentService: AssignmentService,
-    private em: EntityManager,
   ) {}
 
   public async getPaginatedTeamMembers() {
@@ -109,7 +105,7 @@ export class TeamService {
           idTeamMember: teamMemberId,
         },
       });
-      const comments = await this.assignmentService.getTeamMemberComments(
+      const comments: any = await this.assignmentService.getTeamMemberComments(
         teamMemberId,
       );
       const submissions = await this.assignmentService.getRecentSubmissions(

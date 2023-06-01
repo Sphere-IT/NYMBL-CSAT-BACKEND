@@ -1,4 +1,3 @@
-import { InjectRepository } from "@mikro-orm/nestjs";
 import {
   BadRequestException,
   Inject,
@@ -11,11 +10,9 @@ import {
   AssignmentStatusEntity,
   SubmissionEntity,
 } from "./entities";
-import { EntityRepository } from "@mikro-orm/postgresql";
 import { CreateAssignmentInput } from "./dto/input/create-assignment.input";
 import { registerEnumType } from "@nestjs/graphql";
 import { ASSIGNMENT_STATUS } from "./constants";
-import { EntityManager, Loaded } from "@mikro-orm/core";
 import { v4 as uuidV4 } from "uuid";
 import { TeamService } from "src/team/team.service";
 import { FormService } from "src/form/form.service";
@@ -23,17 +20,17 @@ import { SubmitAnswerInput } from "./dto/input";
 import { QUESTION_TYPE } from "src/form/constants";
 import validator from "validator";
 import { GetAssignmentResponse } from "./dto/args";
+import { InjectModel } from "@nestjs/sequelize";
 registerEnumType(ASSIGNMENT_STATUS, { name: "ASSIGNMENT_STATUS" });
 @Injectable()
 export class AssignmentService {
   constructor(
-    @InjectRepository(AssignmentEntity)
-    private assignmentRepository: EntityRepository<AssignmentEntity>,
-    @InjectRepository(AssignmentStatusEntity)
-    private statusRepository: EntityRepository<AssignmentStatusEntity>,
-    @InjectRepository(SubmissionEntity)
-    private submissionRepository: EntityRepository<SubmissionEntity>,
-    private em: EntityManager,
+    @InjectModel(AssignmentEntity)
+    private assignmentRepository: typeof AssignmentEntity,
+    @InjectModel(AssignmentStatusEntity)
+    private statusRepository: typeof AssignmentStatusEntity,
+    @InjectModel(SubmissionEntity)
+    private submissionRepository: typeof SubmissionEntity,
     @Inject(forwardRef(() => TeamService))
     private teamService: TeamService,
     private formService: FormService,
@@ -50,7 +47,7 @@ export class AssignmentService {
     if (!form || !team) throw new BadRequestException("Invalid data");
 
     const pendingStatus = await this.getStatus(ASSIGNMENT_STATUS.PENDING);
-    const assignment = this.assignmentRepository.create({
+    const assignment = await this.assignmentRepository.create({
       refIdForm: input.formId,
       refIdTeamMember: input.teamMemberId,
       refIdStatus: pendingStatus.idStatus,
@@ -58,35 +55,36 @@ export class AssignmentService {
       createdAt: new Date(),
       assignmentRef: uuidV4(),
     });
-    await this.em.persistAndFlush(assignment);
     return assignment.assignmentRef;
   }
 
   private async getStatus(status: ASSIGNMENT_STATUS) {
-    return await this.statusRepository.findOne({ statusCode: status });
+    return await this.statusRepository.findOne({
+      where: { statusCode: status },
+      raw: true,
+    });
   }
 
   public async getTeamMemberComments(teamMemberId: number) {
-    // const comments = await this.assignmentRepository.find(
-    //   { refIdTeamMember: teamMemberId },
-    //   { fields: ["message", "createdAt"], limit: 5 },
-    // );
-    //TODO: fixx
-    const comments = [];
+    const comments = await this.assignmentRepository.findAll({
+      where: {
+        refIdTeamMember: teamMemberId,
+      },
+      attributes: ["message", "createdAt"],
+      limit: 5,
+      raw: true,
+    });
     return comments;
   }
 
   public async getRecentSubmissions(teamMemberId: number) {
     try {
-      // await this.assignmentRepository.find(
-      //   { refIdTeamMember: teamMemberId },
-      //   {
-      //     limit: 5,
-      //     orderBy: { createdAt: "ASC" },
-      //   },
-      // );
-      //TODO: fixx
-      const submissions = [];
+      const submissions = await this.assignmentRepository.findAll({
+        where: { refIdTeamMember: teamMemberId },
+        limit: 5,
+        order: [["createdAt", "ASC"]],
+        raw: true,
+      });
       return submissions;
     } catch (err) {
       throw new BadRequestException(err?.message, err);
@@ -122,12 +120,10 @@ export class AssignmentService {
     );
 
     assignment.refIdStatus = inProgressStatus.idStatus;
-    await this.em.persist(submission);
-    await this.em.persist(assignment);
+    await submission.save();
+    await assignment.save();
 
     await this.checkAssignmentCompletion(assignment);
-
-    await this.em.flush();
 
     //TODO: return updated data
     return {
@@ -141,7 +137,7 @@ export class AssignmentService {
       assignment.refIdForm,
     );
     const submissionTotal = await this.submissionRepository.count({
-      refIdAssignment: assignment.idAssignment,
+      where: { refIdAssignment: assignment.idAssignment },
     });
 
     if (totalQuestions === submissionTotal) {
@@ -149,15 +145,16 @@ export class AssignmentService {
         ASSIGNMENT_STATUS.COMPLETED,
       );
       assignment.refIdStatus = completedStatus.idStatus;
-      await this.em.persist(assignment);
+      await assignment.save();
     }
   }
 
   private async validateAssignmentExists(
     assignmentRef: string,
-  ): Promise<Loaded<AssignmentEntity>> {
+  ): Promise<AssignmentEntity> {
     const assignment = await this.assignmentRepository.findOne({
-      assignmentRef,
+      where: { assignmentRef },
+      raw: true,
     });
     if (!assignment) throw new NotFoundException("Assignment does not exist");
     return assignment;
@@ -170,17 +167,23 @@ export class AssignmentService {
   }
 
   private async getAssignmentStatuses() {
-    return await this.statusRepository.find({});
+    return await this.statusRepository.findAll({});
   }
 
   private async getStatusByCode(statusCode: ASSIGNMENT_STATUS) {
-    return await this.statusRepository.findOne({ statusCode });
+    return await this.statusRepository.findOne({
+      raw: true,
+      where: { statusCode },
+    });
   }
 
   private async validateNotAnswered(assignmentId, questionId) {
     const submission = await this.submissionRepository.findOne({
-      refIdAssignment: assignmentId,
-      refIdQuestion: questionId,
+      where: {
+        refIdAssignment: assignmentId,
+        refIdQuestion: questionId,
+      },
+      raw: true,
     });
     if (submission?.idSubmission) {
       throw new BadRequestException("Question already answered");
@@ -192,21 +195,23 @@ export class AssignmentService {
   ): Promise<GetAssignmentResponse> {
     const assignment = await this.assignmentRepository.findOne(
       {
-        assignmentRef,
+        where: { assignmentRef },
+        include: [AssignmentStatusEntity],
       },
-      {
-        populate: ["status"],
-      },
+      // {
+      //   populate: ["status"],//TODO: fixme
+      // },
     );
+    console.log(assignment.status.statusCode);
 
     const questions = await this.formService.getFormQuestions(
       assignment.refIdForm,
     );
 
-    const submittedAnswers = await this.submissionRepository.find(
-      { refIdAssignment: assignment.idAssignment },
-      { fields: ["refIdQuestion"] },
-    );
+    const submittedAnswers = await this.submissionRepository.findAll({
+      where: { refIdAssignment: assignment.idAssignment },
+      attributes: ["refIdQuestion"],
+    });
     const ids = submittedAnswers.map((i) => i.refIdQuestion);
 
     console.log(ids);
