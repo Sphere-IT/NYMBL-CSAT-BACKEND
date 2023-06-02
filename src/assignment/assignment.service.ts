@@ -21,6 +21,7 @@ import { QUESTION_TYPE } from "src/form/constants";
 import validator from "validator";
 import { GetAssignmentResponse } from "./dto/args";
 import { InjectModel } from "@nestjs/sequelize";
+import { FormEntity } from "src/form/entities";
 registerEnumType(ASSIGNMENT_STATUS, { name: "ASSIGNMENT_STATUS" });
 @Injectable()
 export class AssignmentService {
@@ -83,7 +84,8 @@ export class AssignmentService {
         where: { refIdTeamMember: teamMemberId },
         limit: 5,
         order: [["createdAt", "ASC"]],
-        raw: true,
+        // raw: true,
+        include: [FormEntity],
       });
       return submissions;
     } catch (err) {
@@ -133,11 +135,17 @@ export class AssignmentService {
   }
 
   private async checkAssignmentCompletion(assignment: AssignmentEntity) {
+    console.log("\n\n\n\n\n fsdlfjkdsfdslkfjs");
     const totalQuestions = await this.formService.getFormQuestionCount(
       assignment.refIdForm,
     );
     const submissionTotal = await this.submissionRepository.count({
       where: { refIdAssignment: assignment.idAssignment },
+    });
+
+    console.log({
+      submissionTotal,
+      totalQuestions,
     });
 
     if (totalQuestions === submissionTotal) {
@@ -215,7 +223,10 @@ export class AssignmentService {
 
     console.log(ids);
 
-    const currentQuestion = await this.formService.getNextUnAnswered(ids);
+    const currentQuestion = await this.formService.getNextUnAnswered(
+      ids,
+      assignment.refIdForm,
+    );
 
     return {
       assignmentRef,

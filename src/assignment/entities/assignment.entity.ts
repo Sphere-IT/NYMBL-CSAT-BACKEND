@@ -10,6 +10,7 @@ import {
 } from "sequelize-typescript";
 import { AssignmentStatusEntity } from "./assignment-status.entity";
 import { Association } from "sequelize";
+import { FormEntity } from "src/form/entities";
 
 @ObjectType()
 @Table({ tableName: "assignments", underscored: true })
@@ -41,15 +42,15 @@ export class AssignmentEntity extends Model<AssignmentEntity> {
   refIdStatus: number;
 
   @Column({ type: DataType.STRING, allowNull: true })
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   name: string;
 
   @Column({ type: DataType.STRING, allowNull: true })
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   phone: string;
 
   @Column({ type: DataType.STRING, allowNull: true })
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   message: string;
 
   @Column({
@@ -88,13 +89,12 @@ export class AssignmentEntity extends Model<AssignmentEntity> {
   // @Field(() => FormEntity, { nullable: true })
   // form?: FormEntity;
 
-  // @OneToOne(() => AssignmentStatusEntity, {
-  //   joinColumn: "ref_id_status",
-  //   referenceColumnName: "id_status",
-  //   nullable: true,
-  // })
-  // @Field(() => AssignmentStatusEntity, { nullable: true })
-  // status?: AssignmentStatusEntity;
+  @HasOne(() => FormEntity, {
+    sourceKey: "refIdForm",
+    foreignKey: "idForm",
+  })
+  @Field(() => FormEntity, { nullable: true })
+  form?: FormEntity;
 
   @HasOne(() => AssignmentStatusEntity, {
     sourceKey: "refIdStatus",

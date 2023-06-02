@@ -69,6 +69,7 @@ export class FormService {
     const questions = await this.questionRepository.findAll({
       where: {
         refIdForm: formId,
+        isActive: "Y",
       },
       order: [["questionOrder", "ASC"]],
       raw: true,
@@ -77,11 +78,12 @@ export class FormService {
     return questions;
   }
 
-  public async getNextUnAnswered(ids: number[]) {
+  public async getNextUnAnswered(ids: number[], formId: number) {
     return this.questionRepository.findOne({
       where: {
         idQuestion: { [Op.notIn]: ids },
         isActive: "Y",
+        refIdForm: formId,
       },
       raw: true,
       order: [["questionOrder", "ASC"]],

@@ -4,10 +4,10 @@ import { TeamEntity } from "src/team/entities";
 
 @ObjectType()
 class TeamMemberCommentType {
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   message: string;
 
-  @Field(() => Date)
+  @Field(() => Date, { nullable: true })
   createdAt: Date;
 }
 
