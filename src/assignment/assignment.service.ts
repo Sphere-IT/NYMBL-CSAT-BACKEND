@@ -154,7 +154,6 @@ export class AssignmentService {
   ): Promise<AssignmentEntity> {
     const assignment = await this.assignmentRepository.findOne({
       where: { assignmentRef },
-      raw: true,
     });
     if (!assignment) throw new NotFoundException("Assignment does not exist");
     return assignment;

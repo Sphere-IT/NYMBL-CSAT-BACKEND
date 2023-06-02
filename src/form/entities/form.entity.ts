@@ -1,6 +1,14 @@
 import { Field, ObjectType } from "@nestjs/graphql";
 import { QuestionEntity } from "./question.entity";
-import { Column, DataType, Table, Model, PrimaryKey, HasMany } from "sequelize-typescript";
+import {
+  Column,
+  DataType,
+  Table,
+  Model,
+  PrimaryKey,
+  HasMany,
+  AutoIncrement,
+} from "sequelize-typescript";
 
 @ObjectType()
 @Table({ tableName: "form", underscored: true })
@@ -11,6 +19,7 @@ export class FormEntity extends Model<FormEntity> {
   //   autoIncrement: true,
   // })
   @PrimaryKey
+  @AutoIncrement
   @Column
   @Field(() => Number)
   idForm: number;

@@ -75,7 +75,10 @@ export class QuestionEntity extends Model<QuestionEntity> {
   // @Field(() => FormEntity, { nullable: true })
   // form?: FormEntity;
 
-  @HasOne(() => QuestionTypeEntity, "refIdQuestionType")
+  @HasOne(() => QuestionTypeEntity, {
+    sourceKey: "refIdQuestionType",
+    foreignKey: "idQuestionType",
+  })
   @Field(() => QuestionTypeEntity, { nullable: true })
   questionType: QuestionTypeEntity;
 }

@@ -34,10 +34,20 @@ export class FormService {
   public async getFormDetails(formId: number): Promise<FormEntity> {
     const f = await this.formRepository.findOne(
       {
-        raw: true,
+        // raw: true,
         where: {
           idForm: formId,
         },
+        include: [
+          {
+            model: QuestionEntity,
+            where: {
+              isActive: "Y",
+            },
+            order: [["questionOrder", "ASC"]],
+          },
+        ],
+        order: [["questions", "questionOrder", "ASC"]],
       },
       // order: { questions: { questionOrder: "ASC" } },
       // {
@@ -50,6 +60,7 @@ export class FormService {
 
       // },//TODO: fix me
     );
+    // f.questions
     if (!f) throw new NotFoundException();
     return f;
   }
@@ -80,7 +91,7 @@ export class FormService {
   public async getQuestion(questionId: number): Promise<QuestionEntity> {
     const question = await this.questionRepository.findOne(
       {
-        raw: true,
+        // raw: true,
         where: {
           idQuestion: questionId,
         },
@@ -205,7 +216,7 @@ export class FormService {
         where: { idForm: input.formId },
       });
       if (!form) throw new NotFoundException("Form does not exist");
-      form.formIsActive = "Y";
+      form.formIsActive = "N";
       form.updatedAt = new Date();
       form.updatedBy = userId;
       await form.save();

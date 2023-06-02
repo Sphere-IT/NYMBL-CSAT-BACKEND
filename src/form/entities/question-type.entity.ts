@@ -8,7 +8,7 @@ import {
 } from "sequelize-typescript";
 import { QuestionEntity } from "./question.entity";
 @ObjectType()
-@Table({ tableName: "question_type", underscored: true })
+@Table({ tableName: "question_type", underscored: true, timestamps: false })
 export class QuestionTypeEntity extends Model<QuestionTypeEntity> {
   @Column({
     type: DataType.INTEGER,
@@ -31,6 +31,6 @@ export class QuestionTypeEntity extends Model<QuestionTypeEntity> {
   @Field(() => String)
   questionTypeName: string;
 
-  @BelongsTo(() => QuestionEntity, "refIdQuestionType")
+  @BelongsTo(() => QuestionEntity, "idQuestionType")
   question: QuestionEntity;
 }
