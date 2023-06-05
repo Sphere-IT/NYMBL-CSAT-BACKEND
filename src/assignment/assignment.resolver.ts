@@ -4,7 +4,7 @@ import { CreateAssignmentInput } from "./dto/input/create-assignment.input";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { Allow } from "src/common/decorators";
 import { SuccessResponse } from "src/common/dto/args";
-import { SubmitAnswerInput } from "./dto/input";
+import { SubmitAnswerInput, SubmitMessageInput } from "./dto/input";
 import { GetAssignmentResponse } from "./dto/args";
 
 @Resolver()
@@ -31,5 +31,21 @@ export class AssignmentResolver {
   @Query(() => GetAssignmentResponse)
   public async getAssignment(@Args("assignmentRef") assignmentRef: string) {
     return this.assignmentService.getAssignment(assignmentRef);
+  }
+
+  @Mutation(() => SuccessResponse)
+  public async submitMessage(
+    @Args("input") input: SubmitMessageInput,
+  ): Promise<SuccessResponse> {
+    return this.assignmentService.submitMessage(input);
+  }
+
+  @Query(() => SuccessResponse)
+  public async getMe() {
+    await this.assignmentService.testMe();
+    return {
+      success: true,
+      message: "hello",
+    };
   }
 }

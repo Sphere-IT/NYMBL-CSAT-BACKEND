@@ -6,6 +6,7 @@ type AssignmentEntity {
   assignmentRef: String!
   createdAt: DateTime!
   createdBy: String!
+  finalScore: Float
   form: FormEntity
   idAssignment: Float!
   message: String
@@ -119,6 +120,7 @@ type Mutation {
   login(input: LoginInput!): LoginResponse!
   reorderQuestion(input: ReorderQuestionInput!): SuccessResponse!
   submitAnswer(input: SubmitAnswerInput!): SuccessResponse!
+  submitMessage(input: SubmitMessageInput!): SuccessResponse!
   updateForm(input: UpdateFormInput!): SuccessResponse!
   updateQuestion(input: UpdateQuestionInput!): SuccessResponse!
   updateTeamMember(input: UpdateTeamMemberInput!): SuccessResponse!
@@ -130,6 +132,7 @@ type Query {
   getAssignment(assignmentRef: String!): GetAssignmentResponse!
   getFormDetails(formId: Float!): FormEntity!
   getHello: String!
+  getMe: SuccessResponse!
   getTeamMemberDetails(input: Float!): TeamMemberDetailsResponse!
   listAllForms: [FormEntity!]!
 }
@@ -168,6 +171,13 @@ input SubmitAnswerInput {
   answer: String!
   assignmentRef: String!
   questionId: Float!
+}
+
+input SubmitMessageInput {
+  assignmentRef: String!
+  message: String!
+  name: String!
+  phone: String
 }
 
 type SuccessResponse {

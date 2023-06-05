@@ -16,12 +16,13 @@ import { ASSIGNMENT_STATUS } from "./constants";
 import { v4 as uuidV4 } from "uuid";
 import { TeamService } from "src/team/team.service";
 import { FormService } from "src/form/form.service";
-import { SubmitAnswerInput } from "./dto/input";
+import { SubmitAnswerInput, SubmitMessageInput } from "./dto/input";
 import { QUESTION_TYPE } from "src/form/constants";
 import validator from "validator";
 import { GetAssignmentResponse } from "./dto/args";
 import { InjectModel } from "@nestjs/sequelize";
 import { FormEntity } from "src/form/entities";
+import { SuccessResponse } from "src/common/dto/args";
 registerEnumType(ASSIGNMENT_STATUS, { name: "ASSIGNMENT_STATUS" });
 @Injectable()
 export class AssignmentService {
@@ -135,7 +136,6 @@ export class AssignmentService {
   }
 
   private async checkAssignmentCompletion(assignment: AssignmentEntity) {
-    console.log("\n\n\n\n\n fsdlfjkdsfdslkfjs");
     const totalQuestions = await this.formService.getFormQuestionCount(
       assignment.refIdForm,
     );
@@ -143,18 +143,44 @@ export class AssignmentService {
       where: { refIdAssignment: assignment.idAssignment },
     });
 
-    console.log({
-      submissionTotal,
-      totalQuestions,
-    });
-
     if (totalQuestions === submissionTotal) {
+      //get score
+      const finalScoreQuery = `select s.ref_id_assignment, ROUND(AVG(s.value), 2)::INTEGER as avg from submission s
+      left join question q on q.id_question = s.ref_id_question
+      left join question_type qt on qt.id_question_type = q.ref_id_question_type
+      where s.ref_id_assignment = 48 and qt.question_type_code = '${QUESTION_TYPE.NUMERIC}'
+      group by s.ref_id_assignment;`;
+
+      const finalScore = await this.submissionRepository.sequelize.query(
+        finalScoreQuery,
+      );
+      console.log(
+        finalScore?.[0]?.[0]?.["avg"],
+        typeof finalScore?.[0]?.[0]?.["avg"],
+      );
       const completedStatus = await this.getStatusByCode(
         ASSIGNMENT_STATUS.COMPLETED,
       );
       assignment.refIdStatus = completedStatus.idStatus;
+      assignment.finalScore = finalScore?.[0]?.[0]?.["avg"] || 0;
       await assignment.save();
     }
+  }
+
+  public async testMe() {
+    const finalScoreQuery = `select s.ref_id_assignment, ROUND(AVG(s.value), 2)::INTEGER as avg from submission s
+      left join question q on q.id_question = s.ref_id_question
+      left join question_type qt on qt.id_question_type = q.ref_id_question_type
+      where s.ref_id_assignment = 48 and qt.question_type_code = '${QUESTION_TYPE.NUMERIC}'
+      group by s.ref_id_assignment;`;
+
+    const finalScore = await this.submissionRepository.sequelize.query(
+      finalScoreQuery,
+    );
+    console.log(
+      finalScore?.[0]?.[0]?.["avg"],
+      typeof finalScore?.[0]?.[0]?.["avg"],
+    );
   }
 
   private async validateAssignmentExists(
@@ -234,5 +260,34 @@ export class AssignmentService {
       currentQuestion: currentQuestion,
       status: assignment.status,
     };
+  }
+
+  public async submitMessage(
+    input: SubmitMessageInput,
+  ): Promise<SuccessResponse> {
+    try {
+      const assignment = await this.assignmentRepository.findOne({
+        where: {
+          assignmentRef: input.assignmentRef,
+        },
+      });
+
+      if (!assignment) {
+        throw new NotFoundException("Assignment does not exist");
+      }
+
+      assignment.name = input.name;
+      assignment.message = input.message;
+      assignment.phone = input?.phone || null;
+
+      await assignment.save();
+
+      return {
+        success: true,
+        message: "Message submitted successfully",
+      };
+    } catch (err) {
+      throw new BadRequestException(err?.message, err);
+    }
   }
 }

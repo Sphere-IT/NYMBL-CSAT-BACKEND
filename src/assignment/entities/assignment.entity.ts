@@ -81,6 +81,13 @@ export class AssignmentEntity extends Model<AssignmentEntity> {
   @Field(() => String, { nullable: true })
   updatedBy: string;
 
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+  })
+  @Field(() => Number, { nullable: true })
+  finalScore: number;
+
   // @OneToOne(() => FormEntity, {
   //   joinColumn: "ref_id_form",
   //   referenceColumnName: "id_form",
