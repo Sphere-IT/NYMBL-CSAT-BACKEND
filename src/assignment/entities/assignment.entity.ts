@@ -1,69 +1,130 @@
-import { Entity, OneToOne, Property } from "@mikro-orm/core";
 import { Field, ObjectType } from "@nestjs/graphql";
-import { BaseEntity } from "src/common/entities";
-import { FormEntity } from "src/form/entities";
+import {
+  Column,
+  DataType,
+  Table,
+  Model,
+  HasOne,
+  BelongsTo,
+  PrimaryKey,
+} from "sequelize-typescript";
 import { AssignmentStatusEntity } from "./assignment-status.entity";
+import { FormEntity } from "src/form/entities";
 
-/**
- * 
-CREATE TABLE "assignments" (
-  "id_assignment" SERIAL PRIMARY KEY,
-  "ref_id_form" varchar,
-  "ref_id_team_member" integer,
-  "created_at" timestamp,
-  "created_by" varchar,
-  "updated_at" timestamp,
-  "updated_by" varchar,
-  "ref_id_status" integer
-);
- */
 @ObjectType()
-@Entity({ tableName: "assignments" })
-export class AssignmentEntity extends BaseEntity {
-  @Property({ primary: true, autoincrement: true, nullable: false })
+@Table({ tableName: "ASSIGNMENTS", underscored: true })
+export class AssignmentEntity extends Model<AssignmentEntity> {
+  @PrimaryKey
+  @Column({
+    type: DataType.NUMBER,
+    primaryKey: true,
+    autoIncrement: true,
+    field: "ID_ASSIGNMENT",
+    unique: true,
+  })
   @Field(() => Number)
   idAssignment: number;
 
-  @Property({ nullable: false })
+  @Column({
+    type: DataType.NUMBER,
+    allowNull: true,
+    field: "REF_ID_FORM",
+  })
   @Field(() => Number)
   refIdForm: number;
 
-  @Property({ nullable: false })
+  @Column({
+    type: DataType.NUMBER,
+    allowNull: false,
+    field: "REF_ID_TEAM_MEMBER",
+  })
   @Field(() => Number)
   refIdTeamMember: number;
 
-  @Property({ nullable: false })
+  @Column({
+    type: DataType.NUMBER,
+    allowNull: false,
+    field: "REF_ID_STATUS",
+  })
   @Field(() => Number)
   refIdStatus: number;
 
-  @Property({ nullable: true })
-  @Field(() => String)
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    field: "NAME",
+  })
+  @Field(() => String, { nullable: true })
   name: string;
 
-  @Property({ nullable: true })
-  @Field(() => String)
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    field: "PHONE",
+  })
+  @Field(() => String, { nullable: true })
   phone: string;
 
-  @Property({ nullable: true })
-  @Field(() => String)
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    field: "MESSAGE",
+  })
+  @Field(() => String, { nullable: true })
   message: string;
 
-  @Property()
+  @Column({
+    type: DataType.STRING,
+    field: "ASSIGNMENT_REF",
+  })
   @Field(() => String)
   assignmentRef: string;
 
-  @OneToOne(() => FormEntity, {
-    joinColumn: "ref_id_form",
-    referenceColumnName: "id_form",
-    nullable: true,
+  @Column({
+    type: DataType.DATE,
+    field: "CREATED_AT",
   })
+  @Field(() => Date)
+  createdAt?: Date;
+
+  @Column({
+    type: DataType.STRING,
+    field: "CREATED_BY",
+  })
+  @Field(() => String)
+  createdBy: string;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+    field: "UPDATED_AT",
+  })
+  @Field(() => Date, { nullable: true })
+  updatedAt?: Date;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    field: "UPDATED_BY",
+  })
+  @Field(() => String, { nullable: true })
+  updatedBy: string;
+
+  @Column({
+    type: DataType.DECIMAL(2, 8),
+    allowNull: true,
+    field: "FINAL_SCORE",
+  })
+  @Field(() => Number, { nullable: true })
+  finalScore: number;
+
+  @BelongsTo(() => FormEntity, "refIdForm")
   @Field(() => FormEntity, { nullable: true })
   form?: FormEntity;
 
-  @OneToOne(() => AssignmentStatusEntity, {
-    joinColumn: "ref_id_status",
-    referenceColumnName: "id_status",
-    nullable: true,
+  @HasOne(() => AssignmentStatusEntity, {
+    sourceKey: "refIdStatus",
+    foreignKey: "idStatus",
   })
   @Field(() => AssignmentStatusEntity, { nullable: true })
   status?: AssignmentStatusEntity;

@@ -1,7 +1,6 @@
 import { Module, forwardRef } from "@nestjs/common";
 import { AssignmentService } from "./assignment.service";
 import { AssignmentResolver } from "./assignment.resolver";
-import { MikroOrmModule } from "@mikro-orm/nestjs";
 import {
   AssignmentEntity,
   AssignmentStatusEntity,
@@ -9,12 +8,15 @@ import {
 } from "./entities";
 import { TeamModule } from "src/team/team.module";
 import { FormModule } from "src/form/form.module";
+import { SequelizeModule } from "@nestjs/sequelize";
 
 @Module({
   imports: [
-    MikroOrmModule.forFeature({
-      entities: [AssignmentEntity, AssignmentStatusEntity, SubmissionEntity],
-    }),
+    SequelizeModule.forFeature([
+      AssignmentEntity,
+      AssignmentStatusEntity,
+      SubmissionEntity,
+    ]),
     FormModule,
     forwardRef(() => TeamModule),
   ],

@@ -1,24 +1,78 @@
-import { Collection, Entity, OneToMany, Property } from "@mikro-orm/core";
 import { Field, ObjectType } from "@nestjs/graphql";
-import { BaseEntity } from "src/common/entities";
 import { QuestionEntity } from "./question.entity";
+import {
+  Column,
+  DataType,
+  Table,
+  Model,
+  PrimaryKey,
+  HasMany,
+  AutoIncrement,
+} from "sequelize-typescript";
 
 @ObjectType()
-@Entity({ tableName: "form" })
-export class FormEntity extends BaseEntity {
-  @Property({ nullable: false, primary: true, autoincrement: true })
+@Table({ tableName: "FORM", underscored: true })
+export class FormEntity extends Model<FormEntity> {
+  // @Column({
+  //   type: DataType.INTEGER,
+  //   allowNull: false,
+  //   autoIncrement: true,
+  // })
+  @Column({
+    field: "ID_FORM",
+    type: DataType.NUMBER,
+    autoIncrement: true,
+    primaryKey: true,
+  })
   @Field(() => Number)
   idForm: number;
 
-  @Property()
+  @Column({
+    type: DataType.STRING,
+    field: "FORM_NAME",
+  })
   @Field(() => String)
   formName: string;
 
-  @Property()
-  @Field(() => Boolean)
-  formIsActive?: boolean;
+  @Column({
+    type: DataType.STRING,
+    field: "FORM_IS_ACTIVE",
+    defaultValue: "Y",
+  })
+  @Field(() => String)
+  formIsActive?: "Y" | "N";
 
-  @OneToMany(() => QuestionEntity, (q) => q.form, { nullable: true })
+  @Column({
+    type: DataType.DATE,
+    field: "CREATED_AT",
+  })
+  @Field(() => Date)
+  createdAt?: Date;
+
+  @Column({
+    type: DataType.STRING,
+    field: "CREATED_BY",
+  })
+  @Field(() => String)
+  createdBy: string;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+    field: "UPDATED_AT",
+  })
+  @Field(() => Date, { nullable: true })
+  updatedAt?: Date;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    field: "UPDATED_BY",
+  })
+  @Field(() => String, { nullable: true })
+  updatedBy: string;
+
+  @HasMany(() => QuestionEntity, "refIdForm")
   @Field(() => [QuestionEntity], { nullable: true })
-  questions? = new Collection<QuestionEntity>(this);
+  questions?: QuestionEntity[];
 }

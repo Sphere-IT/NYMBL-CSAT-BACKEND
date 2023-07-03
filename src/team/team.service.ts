@@ -1,4 +1,4 @@
-import { InjectRepository } from "@mikro-orm/nestjs";
+// import { InjectRepository } from "@mikro-orm/nestjs";
 import {
   BadRequestException,
   Inject,
@@ -7,7 +7,6 @@ import {
   forwardRef,
 } from "@nestjs/common";
 import { TeamEntity } from "./entities";
-import { EntityManager, EntityRepository } from "@mikro-orm/postgresql";
 import {
   CreateTeamMemberInput,
   TeamListingInput,
@@ -17,16 +16,18 @@ import { TeamMemberDetailsResponse } from "./dto/args";
 import { AssignmentService } from "src/assignment/assignment.service";
 import { SuccessResponse } from "src/common/dto/args";
 import isEmail from "validator/lib/isEmail";
-import { FilterQuery } from "@mikro-orm/core";
+import { InjectModel } from "@nestjs/sequelize";
+import { FindAndCountOptions, Op } from "sequelize";
 
 @Injectable()
 export class TeamService {
   constructor(
-    @InjectRepository(TeamEntity)
-    private teamRepository: EntityRepository<TeamEntity>,
+    // @InjectRepository(TeamEntity)
+    // private teamRepository: EntityRepository<TeamEntity>,
+    @InjectModel(TeamEntity)
+    private teamRepository: typeof TeamEntity,
     @Inject(forwardRef(() => AssignmentService))
     private assignmentService: AssignmentService,
-    private em: EntityManager,
   ) {}
 
   public async getPaginatedTeamMembers() {
@@ -36,41 +37,58 @@ export class TeamService {
   }
 
   public async findOneByUsername(username: string) {
-    return await this.teamRepository.findOne({ username });
+    const a = await this.teamRepository.findOne({
+      where: {
+        username,
+      },
+      raw: true,
+    });
+    return a;
   }
 
   public async validateTeamMemberExist(teamMemberId: number): Promise<boolean> {
     const teamMember = await this.teamRepository.findOne({
-      idTeamMember: teamMemberId,
+      where: {
+        idTeamMember: teamMemberId,
+      },
+      raw: true,
     });
     if (!teamMember) return false;
     return true;
   }
 
   public async filterTeamMembers(input: TeamListingInput) {
-    let filter: FilterQuery<TeamEntity> = {
-      isActive: true,
+    let filter: FindAndCountOptions<TeamEntity> = {
+      where: {
+        isActive: "Y",
+      },
+      raw: true,
+      offset: input.offset,
+      limit: input.limit,
+      order: [["firstName", "ASC"]],
     };
     if (input.name) {
       filter = {
-        $and: [
-          { isActive: true },
-          {
-            $or: [
-              { firstName: { $ilike: input.name } },
-              { lastName: { $ilike: input.name } },
-              { email: { $ilike: input.name } },
-              { contact: { $ilike: input.name } },
-            ],
+        offset: input.offset,
+        limit: input.limit,
+        order: [["firstName", "ASC"]],
+        raw: true,
+        where: {
+          [Op.and]: {
+            isActive: "Y",
+            [Op.or]: {
+              firstName: { [Op.like]: `%${input.name}%` },
+              lastName: { [Op.like]: `%${input.name}%` },
+              email: { [Op.like]: `%${input.name}%` },
+              contact: { [Op.like]: `%${input.name}%` },
+            },
           },
-        ],
+        },
       };
     }
-    const [items, count] = await this.teamRepository.findAndCount(filter, {
-      limit: input.limit,
-      offset: input.offset,
-    });
-
+    const aa = await this.teamRepository.findAndCountAll(filter);
+    const count = aa.count;
+    const items = aa.rows;
     return {
       hasMore: input.offset < count,
       items,
@@ -83,9 +101,11 @@ export class TeamService {
   ): Promise<TeamMemberDetailsResponse> {
     try {
       const member = await this.teamRepository.findOne({
-        idTeamMember: teamMemberId,
+        where: {
+          idTeamMember: teamMemberId,
+        },
       });
-      const comments = await this.assignmentService.getTeamMemberComments(
+      const comments: any = await this.assignmentService.getTeamMemberComments(
         teamMemberId,
       );
       const submissions = await this.assignmentService.getRecentSubmissions(
@@ -117,11 +137,13 @@ export class TeamService {
     }
 
     const oldMember = await this.teamRepository.findOne({
-      $or: [
-        { contact: input.contact },
-        { email: input.email },
-        { username: input.username },
-      ],
+      where: {
+        [Op.or]: {
+          contact: input.contact,
+          email: input.email,
+          username: input.username,
+        },
+      },
     });
 
     if (oldMember) {
@@ -137,20 +159,19 @@ export class TeamService {
       throw new BadRequestException("Email address not valid");
     }
 
-    const member = this.teamRepository.create({
+    const date = new Date();
+
+    await this.teamRepository.create({
       firstName: input.firstName,
       lastName: input.lastName,
       email: input.email,
       password: input.password,
       username: input.username,
       contact: input?.contact || null,
-      refIdDepartment: input?.refIdDepartment || null,
-      createdAt: new Date(),
+      createdAt: date,
       createdBy: userId.toString(),
-      isActive: true,
+      isActive: "Y",
     });
-
-    await this.em.persistAndFlush(member);
 
     return {
       success: true,
@@ -160,7 +181,7 @@ export class TeamService {
 
   public async updateTeamMember(input: UpdateTeamMemberInput, userId: number) {
     const member = await this.teamRepository.findOne({
-      idTeamMember: input.teamMemberId,
+      where: { idTeamMember: input.teamMemberId },
     });
 
     if (!member) {
@@ -176,8 +197,12 @@ export class TeamService {
       }
 
       const phoneUsed = await this.teamRepository.findOne({
-        contact: input.data.contact,
-        idTeamMember: { $ne: input.teamMemberId },
+        where: {
+          [Op.and]: {
+            contact: input.data.contact,
+            idTeamMember: { [Op.ne]: input.teamMemberId },
+          },
+        },
       });
 
       if (phoneUsed) {
@@ -191,8 +216,10 @@ export class TeamService {
       }
 
       const emailUsed = await this.teamRepository.findOne({
-        contact: input.data.contact,
-        idTeamMember: { $ne: input.teamMemberId },
+        where: {
+          contact: input.data.contact,
+          idTeamMember: { [Op.ne]: input.teamMemberId },
+        },
       });
 
       if (emailUsed) {
@@ -200,13 +227,27 @@ export class TeamService {
       }
     }
 
-    await this.teamRepository.assign(member, {
-      ...input.data,
-      updatedBy: userId.toString(),
-      updatedAt: new Date(),
-    });
-
-    await this.em.persistAndFlush(member);
+    Object.keys(input.data).forEach(
+      (k) =>
+        (input["data"][k] == null ||
+          input["data"][k] == "" ||
+          input["data"][k] == undefined) &&
+        delete input["data"][k],
+    );
+    const date = new Date();
+    console.log(input.data);
+    await this.teamRepository.update(
+      {
+        ...input.data,
+        updatedBy: userId.toString(),
+        updatedAt: date,
+      },
+      {
+        where: {
+          idTeamMember: input.teamMemberId,
+        },
+      },
+    );
 
     return {
       success: true,
@@ -218,9 +259,9 @@ export class TeamService {
     teamMemberId: number,
   ): Promise<SuccessResponse> {
     try {
-      await this.teamRepository.nativeUpdate(
-        { idTeamMember: teamMemberId },
-        { isActive: false },
+      await this.teamRepository.update(
+        { isActive: "N" },
+        { where: { idTeamMember: teamMemberId } },
       );
       return {
         success: true,
@@ -234,12 +275,41 @@ export class TeamService {
   public async getTeamMember(teamMemberId: number): Promise<TeamEntity> {
     try {
       const member = await this.teamRepository.findOne({
-        idTeamMember: teamMemberId,
+        where: { idTeamMember: teamMemberId },
       });
       if (!member) throw new NotFoundException("User not found");
       return member;
     } catch (err) {
       throw new BadRequestException(err?.message, err);
     }
+  }
+
+  public async getMe(userId) {
+    const user = await this.teamRepository.findOne({
+      where: {
+        idTeamMember: userId,
+      },
+      raw: true,
+    });
+
+    const { password, ...rest } = user;
+    return rest;
+  }
+
+  public async getTeamReport(formId: number) {
+    const query = `SELECT
+    "TM"."FIRST_NAME" as "firstName",
+    "TM"."LAST_NAME" as "lastName",
+    "TM"."EMAIL" as "email",
+    "TM"."CONTACT" as "phoneNumber",
+    COALESCE(ROUND(AVG(A.FINAL_SCORE), 2), 0) AS "averageScore"
+    from TEAM_MEMBER "TM"
+    left join assignments A on "A"."REF_ID_TEAM_MEMBER" = "TM".ID_TEAM_MEMBER
+    left join submission S on "S".REF_ID_ASSIGNMENT = "A"."ID_ASSIGNMENT"
+    LEFT JOIN ASSIGNMENT_STATUS as2 ON as2.ID_STATUS = A.REF_ID_STATUS
+    WHERE A.REF_ID_FORM = ${formId}
+    GROUP BY "TM".EMAIL, "TM".FIRST_NAME, "TM".LAST_NAME, "TM".CONTACT`;
+    const res = await this.teamRepository.sequelize.query(query, { raw: true });
+    return res[0];
   }
 }

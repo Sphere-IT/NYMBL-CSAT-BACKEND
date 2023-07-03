@@ -8,34 +8,87 @@
 );
  */
 
-import { Entity, Property } from "@mikro-orm/core";
 import { Field, ObjectType } from "@nestjs/graphql";
-import { BaseEntity } from "src/common/entities";
+import {
+  Column,
+  DataType,
+  Table,
+  Model,
+  PrimaryKey,
+  BelongsTo,
+} from "sequelize-typescript";
+import { QuestionEntity } from "src/form/entities";
 
 @ObjectType()
-@Entity({ tableName: "submission" })
-export class SubmissionEntity {
-  @Property({ primary: true, autoincrement: true })
+@Table({ tableName: "SUBMISSION", underscored: true })
+export class SubmissionEntity extends Model<SubmissionEntity> {
+  @PrimaryKey
+  @Column({
+    type: DataType.NUMBER,
+    primaryKey: true,
+    autoIncrement: true,
+    field: "ID_SUBMISSION",
+    unique: true,
+  })
   @Field(() => Number)
   idSubmission: number;
 
-  @Property()
+  @Column({
+    type: DataType.NUMBER,
+    field: "REF_ID_QUESTION",
+  })
   @Field(() => Number)
   refIdQuestion: number;
 
-  @Property()
+  @Column({
+    type: DataType.NUMBER,
+    field: "REF_ID_ASSIGNMENT",
+  })
   @Field(() => Number)
   refIdAssignment: number;
 
-  @Property()
+  @Column({
+    type: DataType.STRING,
+    field: "VALUE",
+    // allowNull: true,
+  })
   @Field(() => String)
   value: string;
 
-  @Property({ nullable: true })
-  @Field(() => String, { nullable: true })
-  createdBy?: string;
-
-  @Property({ nullable: true })
-  @Field(() => Date, { nullable: true })
+  @Column({
+    type: DataType.DATE,
+    field: "CREATED_AT",
+  })
+  @Field(() => Date)
   createdAt?: Date;
+
+  @Column({
+    type: DataType.STRING,
+    field: "CREATE_BY",
+  })
+  @Field(() => String)
+  createdBy: string;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+    field: "UPDATED_AT",
+  })
+  @Field(() => Date, { nullable: true })
+  updatedAt?: Date;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    field: "UPDATED_BY",
+  })
+  @Field(() => String, { nullable: true })
+  updatedBy: string;
+
+  @BelongsTo(() => QuestionEntity, {
+    foreignKey: "refIdQuestion",
+    as: "question",
+  })
+  @Field(() => QuestionEntity, { nullable: true })
+  question?: QuestionEntity;
 }

@@ -4,7 +4,6 @@ import { AuthResolver } from "./auth.resolver";
 import { LocalStrategy } from "./local.strategy";
 import { PassportModule } from "@nestjs/passport";
 import { TeamService } from "src/team/team.service";
-import { MikroOrmModule } from "@mikro-orm/nestjs";
 import { TeamEntity } from "src/team/entities";
 import { TeamModule } from "src/team/team.module";
 import { JwtModule } from "@nestjs/jwt";

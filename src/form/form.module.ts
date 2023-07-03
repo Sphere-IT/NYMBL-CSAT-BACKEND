@@ -1,14 +1,16 @@
 import { Module } from "@nestjs/common";
 import { FormService } from "./form.service";
 import { FormResolver } from "./form.resolver";
-import { MikroOrmModule } from "@mikro-orm/nestjs";
 import { FormEntity, QuestionEntity, QuestionTypeEntity } from "./entities";
+import { SequelizeModule } from "@nestjs/sequelize";
 
 @Module({
   imports: [
-    MikroOrmModule.forFeature({
-      entities: [FormEntity, QuestionEntity, QuestionTypeEntity],
-    }),
+    SequelizeModule.forFeature([
+      FormEntity,
+      QuestionEntity,
+      QuestionTypeEntity,
+    ]),
   ],
   providers: [FormResolver, FormService],
   exports: [FormService],

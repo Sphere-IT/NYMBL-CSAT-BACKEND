@@ -6,38 +6,41 @@ import { join } from "path";
 import { ApolloDriver } from "@nestjs/apollo";
 import { TeamModule } from "./team/team.module";
 import { AssignmentModule } from "./assignment/assignment.module";
-import { MikroOrmModule } from "@mikro-orm/nestjs";
 import { entities } from "./common/config";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { AuthModule } from "./auth/auth.module";
 import { FormModule } from "./form/form.module";
 import { GraphQLError, GraphQLFormattedError } from "graphql";
 import { SequelizeModule } from "@nestjs/sequelize";
+import * as oracledb from "oracledb";
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    MikroOrmModule.forRootAsync({
-      imports: [ConfigModule],
+    SequelizeModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: async (cnf: ConfigService) => {
+      imports: [ConfigModule],
+      useFactory: (cnf: ConfigService) => {
+        oracledb.initOracleClient();
+
         return {
-          entities: [...entities],
-          dbName: cnf.get("DB_NAME"),
+          dialect: "oracle",
           host: cnf.get("DB_HOST"),
-          type: cnf.get("DB_DRIVER"),
+          port: cnf.get("DB_PORT"),
+          username: cnf.get("DB_USER"),
           password: cnf.get("DB_PASSWORD"),
-          user: cnf.get("DB_USER"),
-          debug: true,
-          timezone: "UTC",
+          database: cnf.get("DB_NAME"),
+          models: [...entities],
+          synchronize: false,
         };
       },
     }),
     GraphQLModule.forRoot({
-      autoSchemaFile: join(process.cwd(), "src/schema.gql"),
+      autoSchemaFile: join(process.cwd(), "schema.gql"),
       sortSchema: true,
       driver: ApolloDriver,
       playground: true,
+      introspection: true,
       fieldResolverEnhancers: ["interceptors"],
       formatError: (error: GraphQLError | any) => {
         console.log(
