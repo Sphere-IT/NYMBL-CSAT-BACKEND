@@ -1,13 +1,28 @@
-import { Args, Mutation, Query, Resolver } from "@nestjs/graphql";
+import {
+  Args,
+  Mutation,
+  Query,
+  Resolver,
+  registerEnumType,
+} from "@nestjs/graphql";
 import { TeamService } from "./team.service";
 import { Allow, CurrentUser } from "src/common/decorators";
-import { FilterTeamResponse, TeamMemberDetailsResponse } from "./dto/args";
+import {
+  ExposedTeamMember,
+  FilterTeamResponse,
+  TeamMemberDetailsResponse,
+  UserReportResponse,
+} from "./dto/args";
 import {
   CreateTeamMemberInput,
   TeamListingInput,
   UpdateTeamMemberInput,
 } from "./dto/input";
 import { SuccessResponse } from "src/common/dto/args";
+import { USER_TYPES } from "./constants";
+import { TeamEntity } from "./entities";
+
+registerEnumType(USER_TYPES, { name: "USER_TYPES" });
 
 @Resolver()
 export class TeamResolver {
@@ -54,5 +69,16 @@ export class TeamResolver {
   @Allow()
   async getTeamMemberDetails(@Args("input") teamMemberId: number) {
     return this.teamService.getTeamMemberDetails(teamMemberId);
+  }
+
+  @Query(() => ExposedTeamMember)
+  @Allow()
+  async getMe(@CurrentUser() currentUser) {
+    return this.teamService.getMe(currentUser.userId);
+  }
+
+  @Query(() => [UserReportResponse])
+  async getTeamReport(@Args("formId") formId: number) {
+    return this.teamService.getTeamReport(formId);
   }
 }

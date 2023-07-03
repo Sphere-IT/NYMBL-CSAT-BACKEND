@@ -1,4 +1,5 @@
 import { Field, InputType } from "@nestjs/graphql";
+import { USER_TYPES } from "src/team/constants";
 
 @InputType()
 class UpdateTeamMemberData {
@@ -20,8 +21,8 @@ class UpdateTeamMemberData {
   @Field(() => String, { nullable: true })
   password: string;
 
-  @Field(() => Number, { nullable: true })
-  refIdDepartment?: number;
+  @Field(() => USER_TYPES, { nullable: true })
+  userType: USER_TYPES;
 }
 @InputType()
 export class UpdateTeamMemberInput {

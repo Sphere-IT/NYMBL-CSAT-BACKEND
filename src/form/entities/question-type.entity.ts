@@ -5,15 +5,18 @@ import {
   Table,
   Model,
   BelongsTo,
+  HasMany,
 } from "sequelize-typescript";
 import { QuestionEntity } from "./question.entity";
 @ObjectType()
-@Table({ tableName: "question_type", underscored: true, timestamps: false })
+@Table({ tableName: "QUESTION_TYPE", underscored: true, timestamps: false })
 export class QuestionTypeEntity extends Model<QuestionTypeEntity> {
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.NUMBER,
     primaryKey: true,
     autoIncrement: true,
+    field: "ID_QUESTION_TYPE",
+    unique: true,
   })
   @Field(() => Number)
   idQuestionType: number;
@@ -21,16 +24,18 @@ export class QuestionTypeEntity extends Model<QuestionTypeEntity> {
   @Column({
     type: DataType.STRING,
     unique: true,
+    field: "QUESTION_TYPE_CODE",
   })
   @Field(() => String)
   questionTypeCode: string;
 
   @Column({
     type: DataType.STRING,
+    field: "QUESTION_TYPE_NAME",
   })
   @Field(() => String)
   questionTypeName: string;
 
-  @BelongsTo(() => QuestionEntity, "idQuestionType")
+  @HasMany(() => QuestionEntity, "refIdQuestionType")
   question: QuestionEntity;
 }

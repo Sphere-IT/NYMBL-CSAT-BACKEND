@@ -1,0 +1,404 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+enum ASSIGNMENT_STATUS {
+  COMPLETED
+  IN_PROGRESS
+  PENDING
+}
+
+type AssignmentDetailsResponse {
+  assignmentRef: String!
+  contact: String
+  createdDate: DateTime!
+  finalScore: Float
+  formName: String!
+  message: String
+  name: String
+  statusCode: ASSIGNMENT_STATUS!
+  submissions: [SubmissionEntity!]!
+}
+
+type AssignmentEntity {
+  assignmentRef: String!
+  createdAt: DateTime!
+  createdBy: String!
+  finalScore: Float
+  form: FormEntity
+  idAssignment: Float!
+  message: String
+  name: String
+  phone: String
+  refIdForm: Float!
+  refIdStatus: Float!
+  refIdTeamMember: Float!
+  status: AssignmentStatusEntity
+  updatedAt: DateTime
+  updatedBy: String
+}
+
+type AssignmentList {
+  hasMore: Boolean!
+  items: [ExportedAssignment!]!
+  total: Int!
+}
+
+input AssignmentReportInput {
+  betweenDates: [DateTime!]
+  betweenScore: [Float!]
+  formId: Float!
+  teamMemberId: Float
+}
+
+type AssignmentReportResponse {
+  AVERAGE_SCORE: Float!
+  CONTACT: String!
+  CREATED_AT: DateTime!
+  CUSTOMER_COMMENT: String
+  CUSTOMER_CONTACT: String
+  CUSTOMER_NAME: String
+  EMAIL: String!
+  FIRST_NAME: String!
+  FORM_NAME: String!
+  LAST_NAME: String!
+}
+
+type AssignmentStatusEntity {
+  idStatus: Float!
+  statusCode: String!
+  statusName: String!
+}
+
+type AverageQuarterlyScoreObject {
+  averageScore: Float!
+  label: String!
+}
+
+input CreateAssignmentInput {
+  formId: Float!
+  teamMemberId: Float!
+}
+
+input CreateFormInput {
+  formName: String!
+}
+
+input CreateQuestionInput {
+  formId: Float!
+  questionText: String!
+}
+
+input CreateTeamMemberInput {
+  contact: String!
+  email: String!
+  firstName: String!
+  lastName: String!
+  password: String!
+  userType: USER_TYPES! = AGENT
+  username: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+input DeleteFormInput {
+  formId: Float!
+}
+
+input DeleteQuestionInput {
+  questionId: Float!
+}
+
+type ExportedAssignment {
+  assignmentId: Float!
+  assignmentRef: String!
+  averageScore: Float
+  contact: String!
+  createdAt: DateTime!
+  customerComment: String
+  customerContact: String
+  customerName: String
+  email: String!
+  firstName: String!
+  formName: String!
+  lastName: String!
+  status: String!
+}
+
+type ExposedTeamMember {
+  contact: String!
+  createdAt: DateTime!
+  createdBy: String!
+  email: String!
+  idTeamMember: Float
+  isActive: String
+  userType: USER_TYPES!
+  username: String
+}
+
+type FilterFormResponse {
+  hasMore: Boolean!
+  items: [FormEntity!]!
+  total: Int!
+}
+
+type FilterTeamResponse {
+  hasMore: Boolean!
+  items: [TeamEntity!]!
+  total: Int!
+}
+
+type FormEntity {
+  createdAt: DateTime!
+  createdBy: String!
+  formIsActive: String!
+  formName: String!
+  idForm: Float!
+  questions: [QuestionEntity!]
+  updatedAt: DateTime
+  updatedBy: String
+}
+
+input FormListingInput {
+  limit: Float!
+  name: String
+  offset: Float!
+}
+
+type GetAssignmentResponse {
+  assignmentRef: String!
+  currentQuestion: QuestionEntity
+  questions: [QuestionEntity!]!
+  status: AssignmentStatusEntity!
+}
+
+type GetFormStatsResponse {
+  averageQuarterlyScore: [AverageQuarterlyScoreObject!]!
+  nps: Float!
+  overallSatisfaction: [OverallSatisfactionObject!]!
+  questionTotalSelection: QuestionTotalSelectionObject!
+  surveyResponse: SurveyResponseRateObject!
+  topPerformingAgents: [TopPerformingAgentObject!]!
+}
+
+input ListAssignmentsInput {
+  limit: Float
+  offset: Float
+  status: ASSIGNMENT_STATUS
+}
+
+input LoginInput {
+  password: String!
+  username: String!
+}
+
+type LoginResponse {
+  access_token: String!
+  user: TeamEntity!
+}
+
+type Mutation {
+  createAssignmentLink(input: CreateAssignmentInput!): String!
+  createForm(input: CreateFormInput!): SuccessResponse!
+  createQuestion(input: CreateQuestionInput!): SuccessResponse!
+  createTeamMember(input: CreateTeamMemberInput!): SuccessResponse!
+  deleteAssignment(assignmentId: Float!): SuccessResponse!
+  deleteForm(input: DeleteFormInput!): SuccessResponse!
+  deleteQuestion(input: DeleteQuestionInput!): SuccessResponse!
+  deleteTeamMember(teamMemberId: Float!): SuccessResponse!
+  login(input: LoginInput!): LoginResponse!
+  reorderQuestion(input: ReorderQuestionInput!): SuccessResponse!
+  submitAnswer(input: SubmitAnswerInput!): SuccessResponse!
+  submitMessage(input: SubmitMessageInput!): SuccessResponse!
+  updateForm(input: UpdateFormInput!): SuccessResponse!
+  updateQuestion(input: UpdateQuestionInput!): SuccessResponse!
+  updateTeamMember(input: UpdateTeamMemberInput!): SuccessResponse!
+}
+
+type OverallSatisfactionObject {
+  name: String!
+  value: Float!
+}
+
+type Query {
+  getAllForms(input: FormListingInput!): FilterFormResponse!
+  getAllTeamMembers(input: TeamListingInput!): FilterTeamResponse!
+  getAssignment(assignmentRef: String!): GetAssignmentResponse!
+  getAssignmentDetails(assignmentId: String!): AssignmentDetailsResponse!
+  getAssignmentReport(input: AssignmentReportInput!): [AssignmentReportResponse!]!
+  getFormDetails(formId: Float!): FormEntity!
+  getFormStats(formId: Float!): GetFormStatsResponse!
+  getHello: String!
+  getMe: ExposedTeamMember!
+  getTeamMemberDetails(input: Float!): TeamMemberDetailsResponse!
+  getTeamReport(formId: Float!): [UserReportResponse!]!
+  listAllAssignments(input: ListAssignmentsInput!): AssignmentList!
+  listAllForms: [FormEntity!]!
+}
+
+type QuestionEntity {
+  createdAt: DateTime!
+  createdBy: String!
+  idQuestion: Float!
+  isActive: String
+  questionDetails: String!
+  questionOrder: Float!
+  questionType: QuestionTypeEntity
+  refIdForm: Float!
+  refIdQuestionType: Float
+  updatedAt: DateTime
+  updatedBy: String
+}
+
+type QuestionTotalSelectionDataObject {
+  label: String!
+  total: Float!
+}
+
+type QuestionTotalSelectionDataSetsObject {
+  data: [QuestionTotalSelectionDataObject!]!
+  label: String!
+}
+
+type QuestionTotalSelectionObject {
+  dataSets: [QuestionTotalSelectionDataSetsObject!]!
+  labels: [String!]!
+}
+
+type QuestionTypeEntity {
+  idQuestionType: Float!
+  questionTypeCode: String!
+  questionTypeName: String!
+}
+
+enum REORDER_DIRECTION {
+  DOWNWARDS
+  UPWARDS
+}
+
+input ReorderQuestionInput {
+  direction: REORDER_DIRECTION!
+  questionId: Float!
+}
+
+type StatusTotalsObject {
+  name: String!
+  value: Float!
+}
+
+type SubmissionEntity {
+  createdAt: DateTime!
+  createdBy: String!
+  idSubmission: Float!
+  question: QuestionEntity
+  refIdAssignment: Float!
+  refIdQuestion: Float!
+  updatedAt: DateTime
+  updatedBy: String
+  value: String!
+}
+
+input SubmitAnswerInput {
+  answer: String!
+  assignmentRef: String!
+  questionId: Float!
+}
+
+input SubmitMessageInput {
+  assignmentRef: String!
+  message: String!
+  name: String!
+  phone: String
+}
+
+type SuccessResponse {
+  message: String
+  success: Boolean!
+}
+
+type SurveyResponseRateObject {
+  differencePercentage: Float!
+  statusTotals: [StatusTotalsObject!]!
+  totalSurveys: Float!
+}
+
+type TeamEntity {
+  contact: String!
+  createdAt: DateTime!
+  createdBy: String!
+  email: String!
+  firstName: String!
+  idTeamMember: Float
+  isActive: String
+  lastName: String!
+  password: String!
+  refIdDepartment: Float
+  updatedAt: DateTime
+  updatedBy: String
+  userType: USER_TYPES!
+  username: String
+}
+
+input TeamListingInput {
+  limit: Float!
+  name: String
+  offset: Float!
+}
+
+type TeamMemberCommentType {
+  createdAt: DateTime
+  message: String
+}
+
+type TeamMemberDetailsResponse {
+  details: TeamEntity!
+  recentComments: [TeamMemberCommentType!]
+  recentSubmissions: [AssignmentEntity!]
+}
+
+type TopPerformingAgentObject {
+  averageScore: Float!
+  name: String!
+  teamMemberId: Float!
+}
+
+enum USER_TYPES {
+  ADMIN
+  AGENT
+}
+
+input UpdateFormInput {
+  formId: Float!
+  formName: String!
+}
+
+input UpdateQuestionInput {
+  questionId: Float!
+  questionText: String!
+}
+
+input UpdateTeamMemberData {
+  contact: String
+  email: String
+  firstName: String
+  lastName: String
+  password: String
+  userType: USER_TYPES
+  username: String
+}
+
+input UpdateTeamMemberInput {
+  data: UpdateTeamMemberData!
+  teamMemberId: Float!
+}
+
+type UserReportResponse {
+  averageScore: Float!
+  email: String!
+  firstName: String!
+  lastName: String!
+  phoneNumber: String!
+}

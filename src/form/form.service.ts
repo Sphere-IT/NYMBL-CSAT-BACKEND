@@ -18,7 +18,6 @@ import { FilterFormResponse } from "./dto/args";
 import { SuccessResponse } from "src/common/dto/args";
 import validator from "validator";
 import { REORDER_DIRECTION } from "./constants";
-import { Loaded } from "@mikro-orm/core";
 import { InjectModel } from "@nestjs/sequelize";
 import { FindAndCountOptions, Op } from "sequelize";
 
@@ -305,7 +304,24 @@ export class FormService {
       question.updatedAt = new Date();
       question.updatedBy = userId;
       question.isActive = "N";
+      question.questionOrder = null;
       await question.save();
+
+      const questions = await this.questionRepository.findAll({
+        where: {
+          [Op.and]: {
+            isActive: "Y",
+            refIdForm: question.refIdForm,
+          },
+        },
+        order: [["questionOrder", "ASC"]],
+      });
+
+      for (let i = 0; i < questions.length; i++) {
+        questions[i].questionOrder = i + 1;
+        await questions[i].save();
+      }
+
       return {
         success: true,
         message: "Question updated successfully",
@@ -327,7 +343,7 @@ export class FormService {
         throw new NotFoundException("Question not found");
       }
 
-      let nextQ: Loaded<QuestionEntity> = null;
+      let nextQ: QuestionEntity = null;
 
       if (input.direction === REORDER_DIRECTION.DOWNWARDS) {
         nextQ = await this.questionRepository.findOne({

@@ -77,10 +77,10 @@ export class TeamService {
           [Op.and]: {
             isActive: "Y",
             [Op.or]: {
-              firstName: { [Op.like]: input.name },
-              lastName: { [Op.like]: input.name },
-              email: { [Op.like]: input.name },
-              contact: { [Op.like]: input.name },
+              firstName: { [Op.like]: `%${input.name}%` },
+              lastName: { [Op.like]: `%${input.name}%` },
+              email: { [Op.like]: `%${input.name}%` },
+              contact: { [Op.like]: `%${input.name}%` },
             },
           },
         },
@@ -159,6 +159,8 @@ export class TeamService {
       throw new BadRequestException("Email address not valid");
     }
 
+    const date = new Date();
+
     await this.teamRepository.create({
       firstName: input.firstName,
       lastName: input.lastName,
@@ -166,8 +168,7 @@ export class TeamService {
       password: input.password,
       username: input.username,
       contact: input?.contact || null,
-      refIdDepartment: input?.refIdDepartment || null,
-      createdAt: new Date(),
+      createdAt: date,
       createdBy: userId.toString(),
       isActive: "Y",
     });
@@ -197,8 +198,10 @@ export class TeamService {
 
       const phoneUsed = await this.teamRepository.findOne({
         where: {
-          contact: input.data.contact,
-          idTeamMember: { $ne: input.teamMemberId },
+          [Op.and]: {
+            contact: input.data.contact,
+            idTeamMember: { [Op.ne]: input.teamMemberId },
+          },
         },
       });
 
@@ -215,7 +218,7 @@ export class TeamService {
       const emailUsed = await this.teamRepository.findOne({
         where: {
           contact: input.data.contact,
-          idTeamMember: { $ne: input.teamMemberId },
+          idTeamMember: { [Op.ne]: input.teamMemberId },
         },
       });
 
@@ -224,11 +227,20 @@ export class TeamService {
       }
     }
 
+    Object.keys(input.data).forEach(
+      (k) =>
+        (input["data"][k] == null ||
+          input["data"][k] == "" ||
+          input["data"][k] == undefined) &&
+        delete input["data"][k],
+    );
+    const date = new Date();
+    console.log(input.data);
     await this.teamRepository.update(
       {
         ...input.data,
         updatedBy: userId.toString(),
-        updatedAt: new Date(),
+        updatedAt: date,
       },
       {
         where: {
@@ -270,5 +282,34 @@ export class TeamService {
     } catch (err) {
       throw new BadRequestException(err?.message, err);
     }
+  }
+
+  public async getMe(userId) {
+    const user = await this.teamRepository.findOne({
+      where: {
+        idTeamMember: userId,
+      },
+      raw: true,
+    });
+
+    const { password, ...rest } = user;
+    return rest;
+  }
+
+  public async getTeamReport(formId: number) {
+    const query = `SELECT
+    "TM"."FIRST_NAME" as "firstName",
+    "TM"."LAST_NAME" as "lastName",
+    "TM"."EMAIL" as "email",
+    "TM"."CONTACT" as "phoneNumber",
+    COALESCE(ROUND(AVG(A.FINAL_SCORE), 2), 0) AS "averageScore"
+    from TEAM_MEMBER "TM"
+    left join assignments A on "A"."REF_ID_TEAM_MEMBER" = "TM".ID_TEAM_MEMBER
+    left join submission S on "S".REF_ID_ASSIGNMENT = "A"."ID_ASSIGNMENT"
+    LEFT JOIN ASSIGNMENT_STATUS as2 ON as2.ID_STATUS = A.REF_ID_STATUS
+    WHERE A.REF_ID_FORM = ${formId}
+    GROUP BY "TM".EMAIL, "TM".FIRST_NAME, "TM".LAST_NAME, "TM".CONTACT`;
+    const res = await this.teamRepository.sequelize.query(query, { raw: true });
+    return res[0];
   }
 }

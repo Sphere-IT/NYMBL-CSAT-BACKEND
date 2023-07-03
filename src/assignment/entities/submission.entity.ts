@@ -9,48 +9,70 @@
  */
 
 import { Field, ObjectType } from "@nestjs/graphql";
-import { Column, DataType, Table, Model } from "sequelize-typescript";
+import {
+  Column,
+  DataType,
+  Table,
+  Model,
+  PrimaryKey,
+  BelongsTo,
+} from "sequelize-typescript";
+import { QuestionEntity } from "src/form/entities";
 
 @ObjectType()
-@Table({ tableName: "submission", underscored: true })
+@Table({ tableName: "SUBMISSION", underscored: true })
 export class SubmissionEntity extends Model<SubmissionEntity> {
+  @PrimaryKey
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.NUMBER,
     primaryKey: true,
     autoIncrement: true,
+    field: "ID_SUBMISSION",
+    unique: true,
   })
   @Field(() => Number)
   idSubmission: number;
 
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.NUMBER,
+    field: "REF_ID_QUESTION",
   })
   @Field(() => Number)
   refIdQuestion: number;
 
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.NUMBER,
+    field: "REF_ID_ASSIGNMENT",
   })
   @Field(() => Number)
   refIdAssignment: number;
 
   @Column({
     type: DataType.STRING,
+    field: "VALUE",
+    // allowNull: true,
   })
   @Field(() => String)
   value: string;
 
-  @Column(DataType.DATE)
+  @Column({
+    type: DataType.DATE,
+    field: "CREATED_AT",
+  })
   @Field(() => Date)
   createdAt?: Date;
 
-  @Column(DataType.STRING)
+  @Column({
+    type: DataType.STRING,
+    field: "CREATE_BY",
+  })
   @Field(() => String)
   createdBy: string;
 
   @Column({
     type: DataType.DATE,
     allowNull: true,
+    field: "UPDATED_AT",
   })
   @Field(() => Date, { nullable: true })
   updatedAt?: Date;
@@ -58,7 +80,15 @@ export class SubmissionEntity extends Model<SubmissionEntity> {
   @Column({
     type: DataType.STRING,
     allowNull: true,
+    field: "UPDATED_BY",
   })
   @Field(() => String, { nullable: true })
   updatedBy: string;
+
+  @BelongsTo(() => QuestionEntity, {
+    foreignKey: "refIdQuestion",
+    as: "question",
+  })
+  @Field(() => QuestionEntity, { nullable: true })
+  question?: QuestionEntity;
 }
